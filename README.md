@@ -9,9 +9,10 @@ Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recogni
 
 ## Package structure
 
-- images.zip
-- metadata.zip
-- sample.zip: contains a subset of images and metadata (zurich)
+- `images.zXX`: a multi-volume zip archive containing the images
+- `metadata.zip`: a single zip archive containing the metadata
+- `sample.zip`: contains a subset of images and metadata (zurich)
+- `checksums.md5`: md5 sums to validate file integrity.
 
 All the archives can be extracted in the same directory resulting in the following tree:
 
