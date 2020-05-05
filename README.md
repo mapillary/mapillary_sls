@@ -46,10 +46,10 @@ The meta files include the following information:
 
 - **postprocessed.csv**: Data derived from the raw images and metadata
 	- key
-	- utm
-	- day/night
+	- utm (easting and northing)
+	- night
 	- control_panel
-	- qualitative_view_direction (forward, backward, sidewards)
+	- view_direction (Forward, Backward, Sideways)
 	- unique_cluster
 
 - **subtask_index.csv**: Precomputed image indices for each subtask in order to evaluate models on (all, summer2winter, winter2summer, day2night, night2day, old2new, new2old)
