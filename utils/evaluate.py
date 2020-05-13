@@ -55,6 +55,26 @@ def mapk(ranks, pidxs, k):
 
     return np.mean([apk(a,p,k) for a,p in zip(pidxs, ranks)])
 
+if __name__ == "__main__":
+
+	# prediceted rankings
+	ranks = np.asarray([[0, 1, 2, 3, 4, 5],
+			 			[0, 5, 4, 1, 3, 2]])
+
+	# ground truth rankings (positive idx)
+	pidxs = np.asarray([[0,1],
+						[4,5]])
+
+	# evaluate at ks
+	ks = [1, 2, 3]
+
+	metrics = evaluate(ranks, pidxs, ks = ks)
+
+	# print metrics
+	for metric in ['recall', 'map']:
+		for i, k in enumerate(ks): 
+			print('{}@{} = {:.3f}'.format(metric, k, metrics['{}@{}'.format(metric, k)]))
+		print()
 
 
 

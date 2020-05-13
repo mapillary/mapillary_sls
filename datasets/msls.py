@@ -187,10 +187,45 @@ class MSLS(Dataset):
         # reset subset counter
         self.current_subset = 0
 
-    def update_subcache(self, net):
+    def update_subcache(self, net = None):
 
         # reset triplets
         self.triplets = []
+
+        # if there is no network associate to the cache, then we don't do any hard negative mining. 
+        # Instead we just create som naive triplets based on distance.
+        if net is None:
+            qidxs = np.random.choice(len(self.qIdx), self.cached_queries, replace = False)
+
+            for q in qidxs:
+                
+                # get query idx
+                qidx = self.qIdx[q]
+                
+                # get positives
+                pidxs = self.pIdx[q]
+
+                # choose a random positive (within positive range (default 10 m))
+                pidx = np.random.choice(pidxs, size = 1)[0]
+
+                # get negatives
+                while True:
+                    nidxs = np.random.choice(len(self.dbImages), size = self.nNeg)
+
+                    # ensure that non of the choice negative images are within the negative range (default 25 m)
+                    if sum(np.in1d(nidxs, self.nonNegIdx[q])) == 0:
+                        break
+                
+                # package the triplet and target
+                triplet = [qidx, pidx, *nidxs]
+                target = [-1, 1] + [0]*len(nidxs)
+
+                self.triplets.append((triplet, target))
+
+            # increment subset counter
+            self.current_subset += 1
+            
+            return
 
         # take n query images
         qidxs = np.asarray(self.subcache_indicies[self.current_subset])
@@ -209,7 +244,7 @@ class MSLS(Dataset):
         qloader = torch.utils.data.DataLoader(ImagesFromList(self.qImages[qidxs], transform=self.transform),**opt)
         ploader = torch.utils.data.DataLoader(ImagesFromList(self.dbImages[pidxs], transform=self.transform),**opt)
         nloader = torch.utils.data.DataLoader(ImagesFromList(self.dbImages[nidxs], transform=self.transform),**opt)
-        
+
         # calculate their descriptors
         net.eval()
         with torch.no_grad():
@@ -296,12 +331,12 @@ class MSLS(Dataset):
         
         # get triplet
         triplet, target = self.triplets[idx]
-
+        
         # get query, positive and negative idx
         qidx = triplet[0]
         pidx = triplet[1]
         nidx = triplet[2:]
-        
+
         # load images into triplet list
         output = [self.transform(Image.open(self.qImages[qidx]))]
         output.append(self.transform(Image.open(self.dbImages[pidx])))
