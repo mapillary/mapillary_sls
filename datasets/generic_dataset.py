@@ -18,7 +18,7 @@ class ImagesFromList(Dataset):
 	    return len(self.images)
 
 	def __getitem__(self, idx):
-		
+
 		img = Image.open(self.images[idx])
 		img = self.transform(img)
 
