@@ -57,7 +57,7 @@ def mapk(ranks, pidxs, k):
 
 if __name__ == "__main__":
 
-	# prediceted rankings
+	# predicted rankings
 	ranks = np.asarray([[0, 1, 2, 3, 4, 5],
 			 			[0, 5, 4, 1, 3, 2]])
 
