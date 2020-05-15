@@ -33,7 +33,7 @@ class MSLS(Dataset):
 
         # flags
         self.cache = None
-        self.exclude_panos = True
+        self.exclude_panos = False
         self.mode = mode
         self.subtask = subtask
 
@@ -49,65 +49,87 @@ class MSLS(Dataset):
             _lenQ = len(self.qImages)
             _lenDb = len(self.dbImages)
 
-            # load query data
-            qData = pd.read_csv(join(root_dir, city, 'query', 'postprocessed.csv'), index_col = 0)
-            qDataRaw = pd.read_csv(join(root_dir, city, 'query', 'raw.csv'), index_col = 0)
+            # when GPS / UTM is available 
+            if self.mode in ['train','val']:
 
-            # load database data
-            dbData = pd.read_csv(join(root_dir, city, 'database', 'postprocessed.csv'), index_col = 0)
-            dbDataRaw = pd.read_csv(join(root_dir, city, 'database', 'raw.csv'), index_col = 0)
+                # load query data
+                qData = pd.read_csv(join(root_dir, city, 'query', 'postprocessed.csv'), index_col = 0)
+                qDataRaw = pd.read_csv(join(root_dir, city, 'query', 'raw.csv'), index_col = 0)
 
-            # filter based on panorama data
-            if self.exclude_panos:
-                qData = qData[(qDataRaw['pano'] == False).values]
-                dbData = dbData[(dbDataRaw['pano'] == False).values]
+                # load database data
+                dbData = pd.read_csv(join(root_dir, city, 'database', 'postprocessed.csv'), index_col = 0)
+                dbDataRaw = pd.read_csv(join(root_dir, city, 'database', 'raw.csv'), index_col = 0)
 
-            # filter based on subtasks
-            if self.mode in ['test', 'val']:
+                # filter based on panorama data
+                if self.exclude_panos:
+                    qData = qData[(qDataRaw['pano'] == False).values]
+                    dbData = dbData[(dbDataRaw['pano'] == False).values]
+
+                # filter based on subtasks
+                if self.mode in ['val']:
+                    qIdx = pd.read_csv(join(root_dir, city, 'query', 'subtask_index.csv'), index_col = 0)
+                    dbIdx = pd.read_csv(join(root_dir, city, 'database', 'subtask_index.csv'), index_col = 0)
+
+                    # filter based on panorama data
+                    if self.exclude_panos:
+                        qIdx = qIdx[(qDataRaw['pano'] == False).values]
+                        dbIdx = dbIdx[(dbDataRaw['pano'] == False).values]
+
+                    qData = qData[(qIdx[self.subtask] == True).values]
+                    dbData = dbData[(dbIdx[self.subtask] == True).values]
+
+                # save full path for images
+                self.qImages.extend([join(root_dir, city, 'query', 'images', key + '.jpg') for key in qData['key']])
+                self.dbImages.extend([join(root_dir, city, 'database','images', key + '.jpg') for key in dbData['key']])
+
+                # utm coordinates
+                utmQ = qData[['easting', 'northing']].values.reshape(-1,2)
+                utmDb = dbData[['easting', 'northing']].values.reshape(-1,2)
+
+                # find positive images for training
+                neigh = NearestNeighbors(algorithm = 'brute')
+                neigh.fit(utmDb)
+                D, I = neigh.radius_neighbors(utmQ, self.posDistThr)
+
+                if mode == 'train':
+                    nD, nI = neigh.radius_neighbors(utmQ, self.negDistThr)
+
+                night, sideways = qData['night'].values, (qData['view_direction'] == 'Sideways').values
+                for qidx in range(len(utmQ)):
+
+                    pidx = I[qidx]
+                    # the query image has at least one positive
+                    if len(pidx) > 0:
+
+                        self.pIdx.append(pidx + _lenDb)
+                        self.qIdx.append(qidx + _lenQ)
+
+                        # in training we have two thresholds, one for finding positives and one for finding images that we are certain are negatives.
+                        if self.mode == 'train':
+
+                            self.nonNegIdx.append(nI[qidx] + _lenDb)
+
+                            # gather meta which is useful for positive sampling
+                            if night[qidx]: self.night.append(len(self.qIdx)-1)
+                            if sideways[qidx]: self.sideways.append(len(self.qIdx)-1)
+
+            # when GPS / UTM is not available
+            elif self.mode in ['test']:
+
+                # load images for subtask
                 qIdx = pd.read_csv(join(root_dir, city, 'query', 'subtask_index.csv'), index_col = 0)
                 dbIdx = pd.read_csv(join(root_dir, city, 'database', 'subtask_index.csv'), index_col = 0)
 
-                if self.exclude_panos:
-                    qIdx = qIdx[(qDataRaw['pano'] == False).values]
-                    dbIdx = dbIdx[(dbDataRaw['pano'] == False).values]
+                # filter on subtask
+                qIdx = qIdx[(qIdx[self.subtask] == True).values]
+                dbIdx = dbIdx[(dbIdx[self.subtask] == True).values]
 
-                qData = qData[(qIdx[self.subtask] == True).values]
-                dbData = dbData[(dbIdx[self.subtask] == True).values]
+                # save full path for images
+                self.qImages.extend([join(root_dir, city, 'query', 'images', key + '.jpg') for key in qIdx['key']])
+                self.dbImages.extend([join(root_dir, city, 'database','images', key + '.jpg') for key in dbIdx['key']])
 
-            # save full path for images
-            self.qImages.extend([join(root_dir, city, 'query', 'images', key + '.jpg') for key in qData['key']])
-            self.dbImages.extend([join(root_dir, city, 'database','images', key + '.jpg') for key in dbData['key']])
-
-            # cast utm coordinates to work with faiss
-            utmQ = qData[['easting', 'northing']].values.reshape(-1,2)
-            utmDb = dbData[['easting', 'northing']].values.reshape(-1,2)
-
-            # find positive images for training
-            neigh = NearestNeighbors(algorithm = 'brute')
-            neigh.fit(utmDb)
-            D, I = neigh.radius_neighbors(utmQ, self.posDistThr)
-
-            if mode == 'train':
-                nD, nI = neigh.radius_neighbors(utmQ, self.negDistThr)
-
-            night, sideways = qData['night'].values, (qData['view_direction'] == 'Sideways').values
-            for qidx in range(len(utmQ)):
-
-                pidx = I[qidx]
-                # the query image has at least one positive
-                if len(pidx) > 0:
-
-                    self.pIdx.append(pidx + _lenDb)
-                    self.qIdx.append(qidx + _lenQ)
-
-                    # in training we have two thresholds, one for finding positives and one for finding images that we are certain are negatives.
-                    if self.mode == 'train':
-
-                        self.nonNegIdx.append(nI[qidx] + _lenDb)
-
-                        # gather meta which is useful for positive sampling
-                        if night[qidx]: self.night.append(len(self.qIdx)-1)
-                        if sideways[qidx]: self.sideways.append(len(self.qIdx)-1)
+                # add query index
+                self.qIdx.extend(list(range(_lenQ, len(qIdx) + _lenQ))) 
 
         # cast to np.arrays for indexing during training
         self.qIdx = np.asarray(self.qIdx)
