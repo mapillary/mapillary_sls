@@ -10,11 +10,25 @@ import random
 from .generic_dataset import ImagesFromList
 from tqdm import tqdm
 
+default_cities = {
+    'train': ["trondheim", "london", "boston", "melbourne", "amsterdam","helsinki",
+              "tokyo","toronto","saopaulo","moscow","zurich","paris","bangkok",
+              "budapest","austin","berlin","ottawa","phoenix","goa","amman","nairobi","manila"],
+    'val': ["cph", "sf"],
+    'test': ["miami","athens","buenosaires","stockholm","bengaluru","kampala"]
+}
 
 class MSLS(Dataset):
     def __init__(self, root_dir, cities = '', nNeg = 5, transform = None, mode = 'train', subtask = 'all', posDistThr = 10, negDistThr = 25, cached_queries = 1000, cached_negatives = 1000, positive_sampling = True):
 
         # initializing
+        assert mode in ('train', 'val', 'test')
+
+        if cities == '':
+            self.cities = default_cities[mode]
+        else:
+            self.cities = cities.split(',')
+
         self.qIdx = []
         self.qImages = []
         self.pIdx = []
@@ -41,9 +55,10 @@ class MSLS(Dataset):
         self.transform = transform
 
         # load data
-        self.cities = cities.split(',')
         for city in self.cities:
             print("=====> {}".format(city))
+
+            subdir = 'test' if city in default_cities['test'] else 'train_val'
 
             # get len of images from cities so far for indexing
             _lenQ = len(self.qImages)
@@ -51,14 +66,13 @@ class MSLS(Dataset):
 
             # when GPS / UTM is available 
             if self.mode in ['train','val']:
-
                 # load query data
-                qData = pd.read_csv(join(root_dir, city, 'query', 'postprocessed.csv'), index_col = 0)
-                qDataRaw = pd.read_csv(join(root_dir, city, 'query', 'raw.csv'), index_col = 0)
+                qData = pd.read_csv(join(root_dir, subdir, city, 'query', 'postprocessed.csv'), index_col = 0)
+                qDataRaw = pd.read_csv(join(root_dir, subdir, city, 'query', 'raw.csv'), index_col = 0)
 
                 # load database data
-                dbData = pd.read_csv(join(root_dir, city, 'database', 'postprocessed.csv'), index_col = 0)
-                dbDataRaw = pd.read_csv(join(root_dir, city, 'database', 'raw.csv'), index_col = 0)
+                dbData = pd.read_csv(join(root_dir, subdir, city, 'database', 'postprocessed.csv'), index_col = 0)
+                dbDataRaw = pd.read_csv(join(root_dir, subdir, city, 'database', 'raw.csv'), index_col = 0)
 
                 # filter based on panorama data
                 if self.exclude_panos:
@@ -67,8 +81,8 @@ class MSLS(Dataset):
 
                 # filter based on subtasks
                 if self.mode in ['val']:
-                    qIdx = pd.read_csv(join(root_dir, city, 'query', 'subtask_index.csv'), index_col = 0)
-                    dbIdx = pd.read_csv(join(root_dir, city, 'database', 'subtask_index.csv'), index_col = 0)
+                    qIdx = pd.read_csv(join(root_dir, subdir, city, 'query', 'subtask_index.csv'), index_col = 0)
+                    dbIdx = pd.read_csv(join(root_dir, subdir, city, 'database', 'subtask_index.csv'), index_col = 0)
 
                     # filter based on panorama data
                     if self.exclude_panos:
@@ -79,8 +93,8 @@ class MSLS(Dataset):
                     dbData = dbData[(dbIdx[self.subtask] == True).values]
 
                 # save full path for images
-                self.qImages.extend([join(root_dir, city, 'query', 'images', key + '.jpg') for key in qData['key']])
-                self.dbImages.extend([join(root_dir, city, 'database','images', key + '.jpg') for key in dbData['key']])
+                self.qImages.extend([join(root_dir, subdir, city, 'query', 'images', key + '.jpg') for key in qData['key']])
+                self.dbImages.extend([join(root_dir, subdir, city, 'database','images', key + '.jpg') for key in dbData['key']])
 
                 # utm coordinates
                 utmQ = qData[['easting', 'northing']].values.reshape(-1,2)
@@ -113,20 +127,20 @@ class MSLS(Dataset):
                             if night[qidx]: self.night.append(len(self.qIdx)-1)
                             if sideways[qidx]: self.sideways.append(len(self.qIdx)-1)
 
-            # when GPS / UTM is not available
+            # when GPS / UTM / pano info is not available
             elif self.mode in ['test']:
 
                 # load images for subtask
-                qIdx = pd.read_csv(join(root_dir, city, 'query', 'subtask_index.csv'), index_col = 0)
-                dbIdx = pd.read_csv(join(root_dir, city, 'database', 'subtask_index.csv'), index_col = 0)
+                qIdx = pd.read_csv(join(root_dir, subdir, city, 'query', 'subtask_index.csv'), index_col = 0)
+                dbIdx = pd.read_csv(join(root_dir, subdir, city, 'database', 'subtask_index.csv'), index_col = 0)
 
                 # filter on subtask
                 qIdx = qIdx[(qIdx[self.subtask] == True).values]
                 dbIdx = dbIdx[(dbIdx[self.subtask] == True).values]
 
                 # save full path for images
-                self.qImages.extend([join(root_dir, city, 'query', 'images', key + '.jpg') for key in qIdx['key']])
-                self.dbImages.extend([join(root_dir, city, 'database','images', key + '.jpg') for key in dbIdx['key']])
+                self.qImages.extend([join(root_dir, subdir, city, 'query', 'images', key + '.jpg') for key in qIdx['key']])
+                self.dbImages.extend([join(root_dir, subdir, city, 'database','images', key + '.jpg') for key in dbIdx['key']])
 
                 # add query index
                 self.qIdx.extend(list(range(_lenQ, len(qIdx) + _lenQ))) 
