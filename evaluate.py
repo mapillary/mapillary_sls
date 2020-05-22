@@ -3,6 +3,7 @@ from utils.evaluate import evaluate
 import numpy as np
 from pathlib import Path
 import argparse
+from os.path import basename as bn
 
 def create_dummy_predictions(prediction_path, dataset):
     print("==> Prediction file doesn't exist")
@@ -12,21 +13,21 @@ def create_dummy_predictions(prediction_path, dataset):
     numQ = len(dataset.qIdx)
     numDb = len(dataset.dbImages)
 
-    # all elements in the database
-    database_elements = np.arange(0, numDb)
-
-    # choose n = min(100, numDb) random elements from the database
-    ranks = [np.random.choice(database_elements, replace=False, size = (min(5, numDb))) for q in range(numQ)]
+    # all keys in the database and query keys
+    query_keys = np.asarray([bn(key)[:-4] for key in dataset.qImages[np.arange(0, numQ)]]).reshape(numQ,1)
+    database_keys = [bn(key)[:-4] for key in dataset.dbImages[np.arange(0, numDb)]]
     
+    # choose n = min(5, numDb) random elements from the database
+    ranks = np.asarray([np.random.choice(database_keys, replace=False, size = (min(5, numDb))) for q in range(numQ)])
+
     # save the dummy predictions
     first_row_str = ' '.join([str(i) for i in ranks[0][:-1]]) + ' and ' + str(ranks[0][-1]) + '.'
-    np.savetxt(prediction_path, ranks, fmt='%d',
-               header="The row number is the query ID.\n"
-                      "Each row contains the predicted IDs for that query ID\n"
+    np.savetxt(prediction_path, np.concatenate([query_keys, ranks], axis=1), fmt='%s',
+               header="Each row contains the a query key followed by N prediction keys\n"
                       "The format is valid for all tasks (im2im, im2seq, ...).\n"
                       
-                      "For example, in this file, the image/sequence with ID 0 is predicted to match with "
-                      + first_row_str)
+                      "For example, in this file, the image/sequence with key " + query_keys[0,0] + 
+                      " is predicted to match with " + first_row_str)
 
 if __name__ == "__main__":
 
@@ -62,16 +63,18 @@ if __name__ == "__main__":
     dataset = MSLS(args.msls_root, cities = args.cities, mode = 'val',
                         posDistThr = args.threshold, subtask = args.subtask)
 
-    positive_indices = dataset.pIdx
-    query_indices = dataset.qIdx
+    # get query and positive image keys
+    positive_keys = [[bn(key)[:-4] for key in dataset.dbImages[pos]] for pos in dataset.pIdx]
+    query_keys = [bn(key)[:-4] for key in dataset.qImages[dataset.qIdx]]
 
+    # create dummy predictions
+    create_dummy_predictions(args.prediction, dataset)
+    
     # load prediction rankings
-    predictions = np.loadtxt(args.prediction, ndmin=2)
-
-    predictions = predictions[query_indices, :]
-
+    predictions = np.loadtxt(args.prediction, ndmin=2, dtype=str)
+    
     # evaluate ranks
-    metrics = evaluate(predictions, positive_indices, ks=ks)
+    metrics = evaluate(query_keys, positive_keys, predictions, ks=ks)
 
     # print metrics
     for metric in ['recall', 'map']:
