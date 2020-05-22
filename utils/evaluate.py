@@ -12,14 +12,21 @@ def rank_embeddings(qvecs, dbvecs):
 
 	return ranks
 
-def evaluate(ranks, pidx, ks = [1,5,10,20]):
+def evaluate(query_keys, positive_keys, predictions, ks = [1,5,10,20]):
+	
+	# ensure that the positive and predictions are for the same elements
+	pred_queries = predictions[:,0:1]
+	pred2gt = [np.where(query_keys == pred_key)[0][0] for pred_key in pred_queries]
 
-	recall_at_k = recall(ranks, pidx, ks)
+	# change order to fit with ground truth
+	predictions = predictions[pred2gt,1:]
+
+	recall_at_k = recall(predictions, positive_keys, ks)
 
 	metrics = {}
 	for i, k in enumerate(ks):
 		metrics['recall@{}'.format(k)] = recall_at_k[i]
-		metrics['map@{}'.format(k)] = mapk(ranks, pidx, k)
+		metrics['map@{}'.format(k)] = mapk(predictions, positive_keys, k)
 
 	return metrics
 
@@ -58,17 +65,20 @@ def mapk(ranks, pidxs, k):
 if __name__ == "__main__":
 
 	# predicted rankings
-	ranks = np.asarray([[0, 1, 2, 3, 4, 5],
-			 			[0, 5, 4, 1, 3, 2]])
+	predictions = np.asarray([["Q1", "DB0", "DB1", "DB2", "DB3", "DB4", "BD5"],
+			 			["Q2", "DB0", "DB5", "DB4", "DB1", "DB3", "DB2"]])
+
+	# query keys
+	qkeys = np.asarray(["Q1", "Q2"])
 
 	# ground truth rankings (positive idx)
-	pidxs = np.asarray([[0,1],
-						[4,5]])
+	pkeys = np.asarray([["DB4","DB5"],
+						["DB0","DB1"]])
 
 	# evaluate at ks
 	ks = [1, 2, 3]
 
-	metrics = evaluate(ranks, pidxs, ks = ks)
+	metrics = evaluate(qkeys, pkeys, predictions, ks = ks)
 
 	# print metrics
 	for metric in ['recall', 'map']:
