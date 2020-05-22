@@ -14,8 +14,8 @@ def create_dummy_predictions(prediction_path, dataset):
     numDb = len(dataset.dbImages)
 
     # all keys in the database and query keys
-    query_keys = np.asarray([bn(key)[:-4] for key in dataset.qImages[np.arange(0, numQ)]]).reshape(numQ,1)
-    database_keys = [bn(key)[:-4] for key in dataset.dbImages[np.arange(0, numDb)]]
+    query_keys = np.asarray([bn(key)[:-4] for key in dataset.qImages[dataset.qIdx]]).reshape(numQ,1)
+    database_keys = [bn(key)[:-4] for key in dataset.dbImages]
     
     # choose n = min(5, numDb) random elements from the database
     ranks = np.asarray([np.random.choice(database_keys, replace=False, size = (min(5, numDb))) for q in range(numQ)])
