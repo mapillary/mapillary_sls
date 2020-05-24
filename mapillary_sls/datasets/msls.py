@@ -7,7 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 import math
 import torch
 import random
-from .generic_dataset import ImagesFromList
+from mapillary_sls.datasets.generic_dataset import ImagesFromList
 from tqdm import tqdm
 
 default_cities = {

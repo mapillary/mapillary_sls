@@ -6,8 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
-from datasets.msls import MSLS
-from utils.eval import eval
+from mapillary_sls.datasets.msls import MSLS
+from mapillary_sls.utils.eval import eval
 
 
 def download_msls_sample(path):
