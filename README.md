@@ -10,14 +10,14 @@ Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recogni
 
 ## 🔥 Using MSLS
 
-We've included an implementation of a PyTorch Dataset in [datasets/msls.py](datasets/msls.py).
+We've included an implementation of a PyTorch Dataset in [datasets/msls.py](mapillary_sls/datasets/msls.py).
 It can be used for evaluation (returning database and query images) or for training (returning triplets).
 Check out the [demo](demo.ipynb) to understand its usage.
 
 
 #### 📊 Standalone evaluation script
 
-A [standalone evaluation script](evaluate.py) is available for the image to image task. It reads the predictions from a text file ([example](example_msls_predictions.csv)) and prints the metrics. 
+A [standalone evaluation script](evaluate.py) is available for the image to image task. It reads the predictions from a text file ([example](example_msls_prediction.csv)) and prints the metrics. 
 
 
 ## 📦 Package structure
