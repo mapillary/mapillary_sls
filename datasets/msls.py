@@ -24,7 +24,9 @@ class MSLS(Dataset):
         # initializing
         assert mode in ('train', 'val', 'test')
 
-        if cities == '':
+        if cities in default_cities:
+            self.cities = default_cities[cities]
+        elif cities == '':
             self.cities = default_cities[mode]
         else:
             self.cities = cities.split(',')

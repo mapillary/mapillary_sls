@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from datasets.msls import MSLS
-from utils.evaluate import evaluate
+from utils.eval import eval
 
 
 def download_msls_sample(path):
@@ -38,7 +38,7 @@ def main():
                         type=str,
                         default='zurich',
                         help='Comma-separated list of cities to evaluate on.'
-                             ' Leave blank to use all the validation set')
+                             ' Leave blank to use the default validation set (sf + cph)')
     parser.add_argument('--subtask',
                         type=str,
                         default='all',
@@ -59,14 +59,24 @@ def main():
                         posDistThr = args.threshold, subtask = args.subtask)
 
     # get query and positive image keys
-    positive_keys = [[bn(key)[:-4] for key in dataset.dbImages[pos]] for pos in dataset.pIdx]
-    query_keys = [bn(key)[:-4] for key in dataset.qImages[dataset.qIdx]]
+    positive_keys = [[bn(p)[:-4] for p in dataset.dbImages[pos]] for pos in dataset.pIdx]
+    query_keys = [bn(p)[:-4] for p in dataset.qImages[dataset.qIdx]]
 
     # load prediction rankings
     predictions = np.loadtxt(args.prediction, ndmin=2, dtype=str)
-    
+
+    # Ensure that there is a prediction for each query image
+    for k in query_keys:
+        assert k in predictions[:, 0], "You didn't provide any predictions for image {}".format(k)
+
+    # Check if there are predictions that don't correspond to any query images
+    for k in predictions[:, 0]:
+        if k not in query_keys:
+            print("Ignoring predictions for {}. It is not in the selected cities".format(k))
+    predictions = np.array([l for l in predictions if l[0] in query_keys])
+
     # evaluate ranks
-    metrics = evaluate(query_keys, positive_keys, predictions, ks=ks)
+    metrics = eval(query_keys, positive_keys, predictions, ks=ks)
 
     # print metrics
     for metric in ['recall', 'map']:
