@@ -12,7 +12,7 @@ def rank_embeddings(qvecs, dbvecs):
 
 	return ranks
 
-def evaluate(query_keys, positive_keys, predictions, ks = [1,5,10,20]):
+def eval(query_keys, positive_keys, predictions, ks = [1, 5, 10, 20]):
 	
 	# ensure that the positive and predictions are for the same elements
 	pred_queries = predictions[:,0:1]
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 	# evaluate at ks
 	ks = [1, 2, 3]
 
-	metrics = evaluate(qkeys, pkeys, predictions, ks = ks)
+	metrics = eval(qkeys, pkeys, predictions, ks = ks)
 
 	# print metrics
 	for metric in ['recall', 'map']:

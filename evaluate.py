@@ -1,9 +1,14 @@
-from datasets.msls import MSLS
-from utils.evaluate import evaluate
-import numpy as np
-from pathlib import Path
 import argparse
 from os.path import basename as bn
+import urllib
+import zipfile
+from os.path import basename as bn
+from pathlib import Path
+
+import numpy as np
+
+from mapillary_sls.datasets.msls import MSLS
+from mapillary_sls.utils.eval import eval
 
 def create_dummy_predictions(prediction_path, dataset):
     print("==> Prediction file doesn't exist")
@@ -29,13 +34,20 @@ def create_dummy_predictions(prediction_path, dataset):
                       "For example, in this file, the image/sequence with key " + query_keys[0,0] + 
                       " is predicted to match with " + first_row_str)
 
-if __name__ == "__main__":
+def download_msls_sample(path):
+    print("Downloading MSLS sample to {}".format(path))
+    path.mkdir(parents=True)
+    path_dl, _ = urllib.request.urlretrieve("https://static.mapillary.com/MSLS_samples.zip")
+    with zipfile.ZipFile(path_dl, 'r') as zf:
+        zf.extractall(path)
+
+def main():
 
     parser = argparse.ArgumentParser()
-    root_default = Path(__file__).parent / 'data'
-    parser.add_argument('prediction',
+    root_default = Path(__file__).parent / 'MSLS_sample'
+    parser.add_argument('--prediction',
                         type=Path,
-                        default=Path(__file__).parent / 'msls_prediction.csv',
+                        default='example_msls_prediction.csv',
                         help='Path to the prediction to be evaluated')
     parser.add_argument('--msls-root',
                         type=Path,
@@ -49,13 +61,19 @@ if __name__ == "__main__":
                         type=str,
                         default='zurich',
                         help='Comma-separated list of cities to evaluate on.'
-                             ' Leave blank to use all the validation set')
+                             ' Leave blank to use the default validation set (sf + cph)')
     parser.add_argument('--subtask',
                         type=str,
                         default='all',
                         help='Subtask to evaluate on: '
                              '[all, s2w, w2s, o2n, n2o, d2n, n2d]')
     args = parser.parse_args()
+
+    if not args.msls_root.exists():
+        if args.msls_root == root_default:
+            download_msls_sample(args.msls_root)
+        else:
+            raise FileNotFoundError("Not found: {}".format(args.msls_root))
 
     # select for which ks to evaluate
     ks = [1, 5, 10, 20]
@@ -64,17 +82,27 @@ if __name__ == "__main__":
                         posDistThr = args.threshold, subtask = args.subtask)
 
     # get query and positive image keys
-    positive_keys = [[bn(key)[:-4] for key in dataset.dbImages[pos]] for pos in dataset.pIdx]
-    query_keys = [bn(key)[:-4] for key in dataset.qImages[dataset.qIdx]]
+    positive_keys = [[bn(p)[:-4] for p in dataset.dbImages[pos]] for pos in dataset.pIdx]
+    query_keys = [bn(p)[:-4] for p in dataset.qImages[dataset.qIdx]]
 
     # create dummy predictions
     create_dummy_predictions(args.prediction, dataset)
     
     # load prediction rankings
     predictions = np.loadtxt(args.prediction, ndmin=2, dtype=str)
-    
+
+    # Ensure that there is a prediction for each query image
+    for k in query_keys:
+        assert k in predictions[:, 0], "You didn't provide any predictions for image {}".format(k)
+
+    # Check if there are predictions that don't correspond to any query images
+    for k in predictions[:, 0]:
+        if k not in query_keys:
+            print("Ignoring predictions for {}. It is not in the selected cities".format(k))
+    predictions = np.array([l for l in predictions if l[0] in query_keys])
+
     # evaluate ranks
-    metrics = evaluate(query_keys, positive_keys, predictions, ks=ks)
+    metrics = eval(query_keys, positive_keys, predictions, ks=ks)
 
     # print metrics
     for metric in ['recall', 'map']:
@@ -83,3 +111,5 @@ if __name__ == "__main__":
         print()
 
 
+if __name__ == "__main__":
+    main()

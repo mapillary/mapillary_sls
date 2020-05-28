@@ -7,7 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 import math
 import torch
 import random
-from .generic_dataset import ImagesFromList
+from mapillary_sls.datasets.generic_dataset import ImagesFromList
 from tqdm import tqdm
 
 default_cities = {
@@ -24,7 +24,9 @@ class MSLS(Dataset):
         # initializing
         assert mode in ('train', 'val', 'test')
 
-        if cities == '':
+        if cities in default_cities:
+            self.cities = default_cities[cities]
+        elif cities == '':
             self.cities = default_cities[mode]
         else:
             self.cities = cities.split(',')
