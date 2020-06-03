@@ -19,8 +19,8 @@ def create_dummy_predictions(prediction_path, dataset):
     numDb = len(dataset.dbImages)
 
     # all keys in the database and query keys
-    query_keys = np.asarray([bn(key)[:-4] for key in dataset.qImages[dataset.qIdx]]).reshape(numQ,1)
-    database_keys = [bn(key)[:-4] for key in dataset.dbImages]
+    query_keys = np.asarray([','.join([bn(k)[:-4] for k in key.split(',')]) for key in dataset.qImages[dataset.qIdx]]).reshape(numQ,1)
+    database_keys = [','.join([bn(k)[:-4] for k in key.split(',')]) for key in dataset.dbImages]
     
     # choose n = min(5, numDb) random elements from the database
     ranks = np.asarray([np.random.choice(database_keys, replace=False, size = (min(5, numDb))) for q in range(numQ)])
@@ -62,6 +62,15 @@ def main():
                         default='zurich',
                         help='Comma-separated list of cities to evaluate on.'
                              ' Leave blank to use the default validation set (sf + cph)')
+    parser.add_argument('--task',
+                        type=str,
+                        default='im2im',
+                        help='Task to evaluate on: '
+                             '[im2im, seq2im, im2seq, seq2seq]')
+    parser.add_argument('--seq_length',
+                        type=int,
+                        default=1,
+                        help='Sequence length to evaluate on')
     parser.add_argument('--subtask',
                         type=str,
                         default='all',
@@ -78,13 +87,13 @@ def main():
     # select for which ks to evaluate
     ks = [1, 5, 10, 20]
 
-    dataset = MSLS(args.msls_root, cities = args.cities, mode = 'val',
-                        posDistThr = args.threshold, subtask = args.subtask)
+    dataset = MSLS(args.msls_root, cities = args.cities, mode = 'val', posDistThr = args.threshold, 
+                    task = args.task, seq_length = args.seq_length, subtask = args.subtask)
 
-    # get query and positive image keys
-    positive_keys = [[bn(p)[:-4] for p in dataset.dbImages[pos]] for pos in dataset.pIdx]
-    query_keys = [bn(p)[:-4] for p in dataset.qImages[dataset.qIdx]]
-
+    # get query and positive image keys    
+    positive_keys = [[','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.dbImages[pos]] for pos in dataset.pIdx]
+    query_keys = [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.qImages[dataset.qIdx]]
+    
     # create dummy predictions
     create_dummy_predictions(args.prediction, dataset)
     

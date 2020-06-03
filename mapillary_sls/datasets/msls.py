@@ -19,10 +19,13 @@ default_cities = {
 }
 
 class MSLS(Dataset):
-    def __init__(self, root_dir, cities = '', nNeg = 5, transform = None, mode = 'train', subtask = 'all', posDistThr = 10, negDistThr = 25, cached_queries = 1000, cached_negatives = 1000, positive_sampling = True):
+    def __init__(self, root_dir, cities = '', nNeg = 5, transform = None, mode = 'train', task = 'im2im', subtask = 'all', seq_length = 1, posDistThr = 10, negDistThr = 25, cached_queries = 1000, cached_negatives = 1000, positive_sampling = True):
 
         # initializing
         assert mode in ('train', 'val', 'test')
+        assert task in ('im2im', 'im2seq', 'seq2im', 'seq2seq')
+        assert seq_length % 2 == 1 
+        assert (task == 'im2im' and seq_length == 1) or (task != 'im2im' and seq_length > 1)
 
         if cities in default_cities:
             self.cities = default_cities[cities]
@@ -49,13 +52,23 @@ class MSLS(Dataset):
 
         # flags
         self.cache = None
-        self.exclude_panos = False
+        self.exclude_panos = True
         self.mode = mode
         self.subtask = subtask
 
         # other
         self.transform = transform
 
+        # define sequence length based on task
+        if task == 'im2im':
+            seq_length_q, seq_length_db = 1, 1
+        elif task == 'seq2seq':
+            seq_length_q, seq_length_db = seq_length, seq_length
+        elif task == 'seq2im':
+            seq_length_q, seq_length_db = seq_length, 1
+        elif task == 'im2seq':
+            seq_length_q, seq_length_db = 1, seq_length
+        
         # load data
         for city in self.cities:
             print("=====> {}".format(city))
@@ -76,58 +89,83 @@ class MSLS(Dataset):
                 dbData = pd.read_csv(join(root_dir, subdir, city, 'database', 'postprocessed.csv'), index_col = 0)
                 dbDataRaw = pd.read_csv(join(root_dir, subdir, city, 'database', 'raw.csv'), index_col = 0)
 
-                # filter based on panorama data
-                if self.exclude_panos:
-                    qData = qData[(qDataRaw['pano'] == False).values]
-                    dbData = dbData[(dbDataRaw['pano'] == False).values]
-
+                # arange based on task
+                qSeqKeys, qSeqIdxs = self.arange_as_seq(qData, join(root_dir, subdir, city, 'query'), seq_length_q)
+                dbSeqKeys, dbSeqIdxs = self.arange_as_seq(dbData, join(root_dir, subdir, city, 'database'), seq_length_db)
+                
                 # filter based on subtasks
                 if self.mode in ['val']:
                     qIdx = pd.read_csv(join(root_dir, subdir, city, 'query', 'subtask_index.csv'), index_col = 0)
                     dbIdx = pd.read_csv(join(root_dir, subdir, city, 'database', 'subtask_index.csv'), index_col = 0)
+                    
+                    # find all the sequence where the center frame belongs to a subtask                                 
+                    val_frames = np.where(qIdx[self.subtask])[0]
+                    qSeqKeys, qSeqIdxs = self.filter(qSeqKeys, qSeqIdxs, val_frames)
+                    
+                    val_frames = np.where(dbIdx[self.subtask])[0]
+                    dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, val_frames)
 
-                    # filter based on panorama data
-                    if self.exclude_panos:
-                        qIdx = qIdx[(qDataRaw['pano'] == False).values]
-                        dbIdx = dbIdx[(dbDataRaw['pano'] == False).values]
+                # filter based on panorama data
+                if self.exclude_panos:
+                    panos_frames = np.where((qDataRaw['pano'] == False).values)[0]
+                    qSeqKeys, qSeqIdxs = self.filter(qSeqKeys, qSeqIdxs, panos_frames)
 
-                    qData = qData[(qIdx[self.subtask] == True).values]
-                    dbData = dbData[(dbIdx[self.subtask] == True).values]
+                    panos_frames = np.where((dbDataRaw['pano'] == False).values)[0]
+                    dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, panos_frames)
+                                
+                self.qImages.extend(qSeqKeys)
+                self.dbImages.extend(dbSeqKeys)
+                
+                unique_qSeqIdx = np.unique(qSeqIdxs)
+                unique_dbSeqIdx = np.unique(dbSeqIdxs)
+                
+                qData = qData.loc[unique_qSeqIdx]
+                dbData = dbData.loc[unique_dbSeqIdx]
 
-                # save full path for images
-                self.qImages.extend([join(root_dir, subdir, city, 'query', 'images', key + '.jpg') for key in qData['key']])
-                self.dbImages.extend([join(root_dir, subdir, city, 'database','images', key + '.jpg') for key in dbData['key']])
+                # useful indexing functions
+                seqIdx2frameIdx = lambda seqIdx, seqIdxs : seqIdxs[seqIdx]
+                frameIdx2seqIdx = lambda frameIdx, seqIdxs: np.where(seqIdxs == frameIdx)[0][1]
+                frameIdx2uniqFrameIdx = lambda frameIdx, uniqFrameIdx : np.where(np.in1d(uniqFrameIdx, frameIdx))[0]
+                uniqFrameIdx2seqIdx = lambda frameIdxs, seqIdxs : np.where(np.in1d(seqIdxs,frameIdxs).reshape(seqIdxs.shape))[0]
 
                 # utm coordinates
                 utmQ = qData[['easting', 'northing']].values.reshape(-1,2)
                 utmDb = dbData[['easting', 'northing']].values.reshape(-1,2)
-
+                
                 # find positive images for training
                 neigh = NearestNeighbors(algorithm = 'brute')
                 neigh.fit(utmDb)
                 D, I = neigh.radius_neighbors(utmQ, self.posDistThr)
-
+                
                 if mode == 'train':
                     nD, nI = neigh.radius_neighbors(utmQ, self.negDistThr)
 
-                night, sideways = qData['night'].values, (qData['view_direction'] == 'Sideways').values
-                for qidx in range(len(utmQ)):
-
-                    pidx = I[qidx]
+                night, sideways, index = qData['night'].values, (qData['view_direction'] == 'Sideways').values, qData.index
+                for q_seq_idx in range(len(qSeqKeys)):
+                    
+                    q_frame_idxs = seqIdx2frameIdx(q_seq_idx, qSeqIdxs)
+                    q_uniq_frame_idx = frameIdx2uniqFrameIdx(q_frame_idxs, unique_qSeqIdx)
+                    
+                    p_uniq_frame_idxs = np.unique([p for pos in I[q_uniq_frame_idx] for p in pos])
+                    
                     # the query image has at least one positive
-                    if len(pidx) > 0:
-
-                        self.pIdx.append(pidx + _lenDb)
-                        self.qIdx.append(qidx + _lenQ)
+                    if len(p_uniq_frame_idxs) > 0:
+                        p_seq_idx = np.unique(uniqFrameIdx2seqIdx(unique_dbSeqIdx[p_uniq_frame_idxs], dbSeqIdxs))
+                        
+                        self.pIdx.append(p_seq_idx + _lenDb)
+                        self.qIdx.append(q_seq_idx + _lenQ)
 
                         # in training we have two thresholds, one for finding positives and one for finding images that we are certain are negatives.
                         if self.mode == 'train':
 
-                            self.nonNegIdx.append(nI[qidx] + _lenDb)
+                            n_uniq_frame_idxs = np.unique([n for nonNeg in nI[q_uniq_frame_idx] for n in nonNeg])
+                            n_seq_idx = np.unique(uniqFrameIdx2seqIdx(unique_dbSeqIdx[n_uniq_frame_idxs], dbSeqIdxs))
+
+                            self.nonNegIdx.append(n_seq_idx + _lenDb)
 
                             # gather meta which is useful for positive sampling
-                            if night[qidx]: self.night.append(len(self.qIdx)-1)
-                            if sideways[qidx]: self.sideways.append(len(self.qIdx)-1)
+                            if sum(night[np.in1d(index, q_frame_idxs)]) > 0: self.night.append(len(self.qIdx)-1)
+                            if sum(sideways[np.in1d(index, q_frame_idxs)]) > 0: self.sideways.append(len(self.qIdx)-1)
 
             # when GPS / UTM / pano info is not available
             elif self.mode in ['test']:
@@ -136,16 +174,23 @@ class MSLS(Dataset):
                 qIdx = pd.read_csv(join(root_dir, subdir, city, 'query', 'subtask_index.csv'), index_col = 0)
                 dbIdx = pd.read_csv(join(root_dir, subdir, city, 'database', 'subtask_index.csv'), index_col = 0)
 
-                # filter on subtask
-                qIdx = qIdx[(qIdx[self.subtask] == True).values]
-                dbIdx = dbIdx[(dbIdx[self.subtask] == True).values]
-
-                # save full path for images
-                self.qImages.extend([join(root_dir, subdir, city, 'query', 'images', key + '.jpg') for key in qIdx['key']])
-                self.dbImages.extend([join(root_dir, subdir, city, 'database','images', key + '.jpg') for key in dbIdx['key']])
+                # arange in sequences
+                qSeqKeys, qSeqIdxs = self.arange_as_seq(qIdx, join(root_dir, subdir, city, 'query'), seq_length_q)
+                dbSeqKeys, dbSeqIdxs = self.arange_as_seq(dbIdx, join(root_dir, subdir, city, 'database'), seq_length_db)
+                
+                # filter query based on subtask                                
+                val_frames = np.where(qIdx[self.subtask])[0]
+                qSeqKeys, qSeqIdxs = self.filter(qSeqKeys, qSeqIdxs, val_frames)
+                
+                # filter database based on subtask
+                val_frames = np.where(dbIdx[self.subtask])[0]
+                dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, val_frames)
+                
+                self.qImages.extend(qSeqKeys)
+                self.dbImages.extend(dbSeqKeys)
 
                 # add query index
-                self.qIdx.extend(list(range(_lenQ, len(qIdx) + _lenQ))) 
+                self.qIdx.extend(list(range(_lenQ, len(qSeqKeys) + _lenQ))) 
 
         # cast to np.arrays for indexing during training
         self.qIdx = np.asarray(self.qIdx)
@@ -196,14 +241,36 @@ class MSLS(Dataset):
         if len(self.sideways) != 0 and len(self.night) != 0:
             print("Sideways and Night weighted with {:.4f}".format(1 + N/len(self.night) + N/len(self.sideways)))
 
-    def __load_image_data__(self, idx):
+    def arange_as_seq(self, data, path, seq_length):
 
-        img = Image.open(self.imlist[idx] + '.jpg')
+        seqInfo = pd.read_csv(join(path, 'seq_info.csv'), index_col = 0)
+        
+        seq_keys, seq_idxs = [], []
+        for idx in data.index:
 
-        if self.transform is not None:
-            img = self.transform(img)
+            # edge cases.
+            if idx < (seq_length//2) or idx >= (len(seqInfo) - seq_length//2): continue
+            
+            # find surrounding frames in sequence
+            seq_idx = np.arange(-seq_length//2, seq_length//2) + 1 + idx
+            seq = seqInfo.iloc[seq_idx]
+            
+            # the sequence must have the same sequence key and must have consecutive frames
+            if len(np.unique(seq['sequence_key'])) == 1 and (seq['frame_number'].diff()[1:] == 1).all():  
+                seq_key = ','.join([join(path, 'images', key + '.jpg') for key in seq['key']])
 
-        return img
+                seq_keys.append(seq_key)
+                seq_idxs.append(seq_idx)
+        
+        return seq_keys, np.asarray(seq_idxs)
+
+    def filter(self, seqKeys, seqIdxs, center_frame_condition):
+        keys, idxs = [], []
+        for key, idx in zip(seqKeys, seqIdxs):
+            if idx[len(idx) // 2] in center_frame_condition: 
+                keys.append(key)
+                idxs.append(idx)
+        return keys, np.asarray(idxs)
 
     def __len__(self):
         return len(self.triplets)
@@ -249,7 +316,7 @@ class MSLS(Dataset):
                 # get negatives
                 while True:
                     nidxs = np.random.choice(len(self.dbImages), size = self.nNeg)
-
+                    
                     # ensure that non of the choice negative images are within the negative range (default 25 m)
                     if sum(np.in1d(nidxs, self.nonNegIdx[q])) == 0:
                         break
@@ -376,8 +443,8 @@ class MSLS(Dataset):
         nidx = triplet[2:]
 
         # load images into triplet list
-        output = [self.transform(Image.open(self.qImages[qidx]))]
-        output.append(self.transform(Image.open(self.dbImages[pidx])))
-        output.extend([self.transform(Image.open(self.dbImages[idx])) for idx in nidx])
-
-        return torch.stack(output), torch.tensor(target)
+        output = [torch.stack([self.transform(Image.open(im)) for im in self.qImages[qidx].split(',')])]
+        output.append(torch.stack([self.transform(Image.open(im)) for im in self.dbImages[pidx].split(',')]))
+        output.extend([torch.stack([self.transform(Image.open(im)) for im in self.dbImages[idx].split(',')]) for idx in nidx])
+        
+        return torch.cat(output), torch.tensor(target)

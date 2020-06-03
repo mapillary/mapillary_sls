@@ -19,8 +19,11 @@ class ImagesFromList(Dataset):
 
 	def __getitem__(self, idx):
 
-		img = Image.open(self.images[idx])
-		img = self.transform(img)
+		img = [Image.open(im) for im in self.images[idx].split(",")]
+		img = [self.transform(im) for im in img]
+
+		if len(img) == 1:
+			img = img[0]
 
 		return img, idx
 
