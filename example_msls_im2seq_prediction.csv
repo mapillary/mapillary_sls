@@ -1,6 +1,10 @@
-# Each row contains the a query key followed by N prediction keys
-# The format is valid for all tasks (im2im, im2seq, ...).
-# For example, in this file, the image/sequence with key AoD5-ZB5YrgyClbR5qmG4g is predicted to match with scn9LBb84tgGGsbOroP0gQ,djzguJwWSKKpwu5LL5bi7A,a7KvKVrCW4qnz3KFyJsATw NmTFj1XrEEH2UUmCfi9rng,1SlhvrJemC1ZO8MvX_O9dw,v-pnb47s0duAtaTTKaQoXQ TY2QJc0eKDb3LDCmU5_I8w,Fb2PYyxcl8uLykEd77syPg,nfqcClLU9NrgRIQXKFtqzQ Z7s1rcHjxolOSy7p5ikbwg,vtBkAmkPVSJpu9m4meNw2A,_iLwocUOp0WOFRzxVozkXg and s4CJDqPmlWxZuYlpl3G8lQ,5gP0S9NgkAH6VD2ho3p8RQ,kJ8R_Da4F2rTxoHKchyQlw.
+# The format is valid for the im2seq task.
+# In this file, the first row indicates that the image with key AoD5-ZB5YrgyClbR5qmG4g is predicted to match with 5 sequences
+# Sequence 1: scn9LBb84tgGGsbOroP0gQ,djzguJwWSKKpwu5LL5bi7A,a7KvKVrCW4qnz3KFyJsATw
+# Sequence 2: NmTFj1XrEEH2UUmCfi9rng,1SlhvrJemC1ZO8MvX_O9dw,v-pnb47s0duAtaTTKaQoXQ
+# Sequence 3: TY2QJc0eKDb3LDCmU5_I8w,Fb2PYyxcl8uLykEd77syPg,nfqcClLU9NrgRIQXKFtqzQ
+# Sequence 4: Z7s1rcHjxolOSy7p5ikbwg,vtBkAmkPVSJpu9m4meNw2A,_iLwocUOp0WOFRzxVozkXg
+# Sequence 5: s4CJDqPmlWxZuYlpl3G8lQ,5gP0S9NgkAH6VD2ho3p8RQ,kJ8R_Da4F2rTxoHKchyQlw.
 AoD5-ZB5YrgyClbR5qmG4g scn9LBb84tgGGsbOroP0gQ,djzguJwWSKKpwu5LL5bi7A,a7KvKVrCW4qnz3KFyJsATw NmTFj1XrEEH2UUmCfi9rng,1SlhvrJemC1ZO8MvX_O9dw,v-pnb47s0duAtaTTKaQoXQ TY2QJc0eKDb3LDCmU5_I8w,Fb2PYyxcl8uLykEd77syPg,nfqcClLU9NrgRIQXKFtqzQ Z7s1rcHjxolOSy7p5ikbwg,vtBkAmkPVSJpu9m4meNw2A,_iLwocUOp0WOFRzxVozkXg s4CJDqPmlWxZuYlpl3G8lQ,5gP0S9NgkAH6VD2ho3p8RQ,kJ8R_Da4F2rTxoHKchyQlw
 gEhnDp9LMQq4SEDWgyVvQw eUPrs-dfS6QqvWpzP2esdA,dnP5DwRmcJltHEPlTdREfQ,H-LEtTCA45-HiofepqUt2A 1ghNjSxcHr3M82BxvNgaHw,u4d8vAb1ALqKU9kJYiH0tA,Mcu71yfOUDLaJyFHUSsDRg zw2zg4I9AX92HGzBqTvpMw,ZXAjfVs7TZk0M-Di1SyRoQ,qfpKAkGfAnQS5tCBy4pSkA aSo5hh3ZmSqCuTmzw2fbEg,AxFh0mHzJsUIi8GYwoXKtw,V2iA7VZYfQw1k1FPtPDDsw t-c3HkRi7xZLrL0sPoMidg,z-f9_Tt2j3gTm9GKnRPgYQ,AnTLP7575MyQK0hQlvLL6w
 mguDPMkLcTvYctYS2Zvo1w kC0rFe0FcuLR9oHhvsuYhQ,pMEtGjMwd5p8sgy2PtMfVw,qRtla2qsDCKEZMWY_vroaA PaZZ5McjiYXzvgTPEGIpfg,SrJ9ptGI2o_x8dnvXal2xw,2vJImH3gTIm5IGKXb1PKhA pY4iIas54QN2bhtC8BesSQ,nBNILyz11m44lgsPZVjzxA,C3jivcFRrOSxxMrZLxspCg QiXwMqU--ix_LBB3_MsEWw,sCeLtQzAYTFsYQEHChNXqQ,I0_EWc2kP4OCyyWlb1Uuag PV0EoP1lcfROmygv1xC-BQ,o7QWxxIzyNOQHOlTEPOijw,B7O0kpoK8jsg1DUGd8DSuQ

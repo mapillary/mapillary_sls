@@ -1,6 +1,6 @@
 # Each row contains the a query key followed by N prediction keys
-# The format is valid for all tasks (im2im, im2seq, ...).
-# For example, in this file, the image/sequence with key AoD5-ZB5YrgyClbR5qmG4g is predicted to match with 5gP0S9NgkAH6VD2ho3p8RQ 3KAm9EKUTx3odMFrl5BSrg JT5meBAEZa0cRqnC1nNu8w v6RsYPPlfPH-tXsrBI6lyA and Hzbz_qGJXv1Zz7IflGPgDw.
+# The format is valid for the im2im task
+# For example, in this file, the image with key AoD5-ZB5YrgyClbR5qmG4g is predicted to match with images 5gP0S9NgkAH6VD2ho3p8RQ 3KAm9EKUTx3odMFrl5BSrg JT5meBAEZa0cRqnC1nNu8w v6RsYPPlfPH-tXsrBI6lyA and Hzbz_qGJXv1Zz7IflGPgDw.
 AoD5-ZB5YrgyClbR5qmG4g 5gP0S9NgkAH6VD2ho3p8RQ 3KAm9EKUTx3odMFrl5BSrg JT5meBAEZa0cRqnC1nNu8w v6RsYPPlfPH-tXsrBI6lyA Hzbz_qGJXv1Zz7IflGPgDw
 gEhnDp9LMQq4SEDWgyVvQw bW_gnac-bxYulw09CuiXxA Vx7d1UiCNNP-xNdbBJkQ0Q dIy-le1VZPHGQNsHZi2Luw 5hOStvk5qjU3iKb8wDonkw PQu21SnFXn4T_jSgAbGQBQ
 mguDPMkLcTvYctYS2Zvo1w nr_KHjYdU6rpN6gGh1475w 94CfIV0ZckqApWbgCojOXA 0uW-MkDNEsg3i3gUqc3cAw YBIE9dW8tsNcqqcLN0tu4g VO9NmYgFVlMJ29MSK87TBg

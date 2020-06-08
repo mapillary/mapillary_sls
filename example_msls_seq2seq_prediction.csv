@@ -1,6 +1,10 @@
-# Each row contains the a query key followed by N prediction keys
-# The format is valid for all tasks (im2im, im2seq, ...).
-# For example, in this file, the image/sequence with key EOC7T_l63Z4LLTSSY6zkkg,AoD5-ZB5YrgyClbR5qmG4g,8VwFgahokEl-0uG-0Yoshg is predicted to match with 6cmmZQXfvISQXQJb1hCzzg,p7IgVm4P1ZUM_fW-bTUyxA,uU1tAt_BvgnISk_PvQaz5w zW2SYm1CqTd3Ao2opU46Rg,ABzL7fA_L2XxOZzQ-V5Rcw,Tm44mRLepxduFTjgE1PadQ qKB0OrKeNQ9z3zLR5oC5Mw,KT5EunloZS4otecyfeA0FQ,QN-h94jD2-LK-7u169p4BA mH5o7aZat-Gt8s8ilpsEzQ,dHjCkrOv_Q2ILQRVyV2wTA,F717yZMMA7NfLYa4-StdNg and u7Gg40_ynn8mTrigOCBtaw,VByTZlEpEcCIks7yNFtOHg,cl3YA_75V80rPlUuBt4lZQ.
+# The format is valid for the seq2seq task.
+# The first row indicates that the sequence with keys EOC7T_l63Z4LLTSSY6zkkg,AoD5-ZB5YrgyClbR5qmG4g,8VwFgahokEl-0uG-0Yoshg is predicted to match with 5 sequences:
+# Sequence 1: 6cmmZQXfvISQXQJb1hCzzg,p7IgVm4P1ZUM_fW-bTUyxA,uU1tAt_BvgnISk_PvQaz5w
+# Sequence 2: zW2SYm1CqTd3Ao2opU46Rg,ABzL7fA_L2XxOZzQ-V5Rcw,Tm44mRLepxduFTjgE1PadQ
+# Sequence 3: qKB0OrKeNQ9z3zLR5oC5Mw,KT5EunloZS4otecyfeA0FQ,QN-h94jD2-LK-7u169p4BA
+# Sequence 4: mH5o7aZat-Gt8s8ilpsEzQ,dHjCkrOv_Q2ILQRVyV2wTA,F717yZMMA7NfLYa4-StdNg
+# Sequence 5: u7Gg40_ynn8mTrigOCBtaw,VByTZlEpEcCIks7yNFtOHg,cl3YA_75V80rPlUuBt4lZQ
 EOC7T_l63Z4LLTSSY6zkkg,AoD5-ZB5YrgyClbR5qmG4g,8VwFgahokEl-0uG-0Yoshg 6cmmZQXfvISQXQJb1hCzzg,p7IgVm4P1ZUM_fW-bTUyxA,uU1tAt_BvgnISk_PvQaz5w zW2SYm1CqTd3Ao2opU46Rg,ABzL7fA_L2XxOZzQ-V5Rcw,Tm44mRLepxduFTjgE1PadQ qKB0OrKeNQ9z3zLR5oC5Mw,KT5EunloZS4otecyfeA0FQ,QN-h94jD2-LK-7u169p4BA mH5o7aZat-Gt8s8ilpsEzQ,dHjCkrOv_Q2ILQRVyV2wTA,F717yZMMA7NfLYa4-StdNg u7Gg40_ynn8mTrigOCBtaw,VByTZlEpEcCIks7yNFtOHg,cl3YA_75V80rPlUuBt4lZQ
 kZJf9hC5wWFAjyZOeh5G2g,gEhnDp9LMQq4SEDWgyVvQw,zQmOgBLmueAgqu7Tkp7p8g DsaNDDCGLWdPGqgH_DAe5g,d2TIRI1284zwlwnCE54XWA,HUPZFF-qV9-nO5bO_smWig FPIl3s_9G01oU0geHVE4WA,GfdMdE50KL-0scv32BTChQ,FndLWWx-OvOD0Ko3mi7Dtw 0WRh4ZPCVs57pGTBh4czxw,v1PNUzD11GseVDwsuFRzgQ,zgB6VPgx1q9lUvduIFTM2Q -znE9Q_f5I4N2KZLU3pTWg,LilEatFGyQ5N821tjNWzjg,T6iMD2ucgMWlfuc7ObjEsw 6-1P-WITFzurqGDgxrplAQ,QILfmGpbI557hiM3XfP81Q,COWLZDtSEPIpJ5z8Bjbzvg
 zIrnp0nlgSa5WnPYyTJcnA,mguDPMkLcTvYctYS2Zvo1w,yehbG2qlsQw6A9L4RhMggg L0Rh50d--ySoyEp4RPSWCw,6qkIr9uprVXL61-dXFaIgA,CYbLPbRS5zBU4xKJTdLgBw wMxvMjbNXBUEW5aLELELvQ,akNNWh5Ok0yYBHC53cWCZQ,H3PFG8V2rosmHOYtWiqanA d1fUIqpTxRN_dqavhiIKrw,R773qFNP-XyEMp36XvhnXQ,2rlDvH_J27Qe2snempwGdg CNjEyYPWtCfoTYTJKvZqFg,hUCoQYdHFXJDdp5ps6_32g,vI4OmcFWL6PJ96a8Hxmphw lGwEtJxeE2PPmW1VY8ArbQ,Q1gjLoYXVTvQXzkxxG1sUg,b55UaxQcfmS4655Xp7mosQ
