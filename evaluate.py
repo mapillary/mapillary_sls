@@ -1,52 +1,12 @@
 import argparse
-import urllib
-import zipfile
 from os.path import basename as bn
 from pathlib import Path
 
 import numpy as np
 
 from mapillary_sls.datasets.msls import MSLS
-from mapillary_sls.utils.eval import eval
+from mapillary_sls.utils.eval import eval, create_dummy_predictions, download_msls_sample
 
-def create_dummy_predictions(prediction_path, dataset):
-    print("==> Prediction file {} doesn't exist".format(prediction_path))
-    print("==> We create a new dummy prediction file at :")
-    print("==> ", prediction_path)
-
-    numQ = len(dataset.qIdx)
-    numDb = len(dataset.dbImages)
-
-    # all keys in the database and query keys
-    query_keys = np.asarray([','.join([bn(k)[:-4] for k in key.split(',')]) for key in dataset.qImages[dataset.qIdx]]).reshape(numQ,1)
-    database_keys = [','.join([bn(k)[:-4] for k in key.split(',')]) for key in dataset.dbImages]
-    # choose n = min(5, numDb) random elements from the database
-    ranks = np.asarray([np.random.choice(database_keys, replace=False, size = (min(5, numDb))) for q in range(numQ)])
-
-    if ',' in query_keys[0,0]:
-        qtxt = f"sequence with keys {query_keys[0,0]}"
-    else:
-        qtxt = f"image with key {query_keys[0, 0]}"
-    mtxt = ' '.join([str(i) for i in ranks[0][:-1]]) + ' and ' + str(ranks[0][-1]) + '.'
-    if ',' in ranks[0,0]:
-        mtxt = f"{len(ranks[0])} sequences: " + mtxt
-    else:
-        mtxt = f"{len(ranks[0])} images: " + mtxt
-    hdr = ("Each row contains the key of a query image or a comma-separated set of keys for a query sequence,\n"
-           "followed by space-separated predicted image keys or sets of comma-separated keys for predicted sequences\n"
-           "The format is valid for all tasks (im2im, im2seq, seq2im, seq2seq)\n"
-           "For example, in this file, the " + qtxt + " is predicted to match with " + mtxt)
-
-    # save the dummy predictions
-    np.savetxt(prediction_path, np.concatenate([query_keys, ranks], axis=1), fmt='%s',
-               header=hdr)
-
-def download_msls_sample(path):
-    print("Downloading MSLS sample to {}".format(path))
-    path.mkdir(parents=True)
-    path_dl, _ = urllib.request.urlretrieve("https://static.mapillary.com/MSLS_samples.zip")
-    with zipfile.ZipFile(path_dl, 'r') as zf:
-        zf.extractall(path)
 
 def main():
 
