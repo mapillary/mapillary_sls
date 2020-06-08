@@ -17,7 +17,7 @@ Check out the [demo](demo.ipynb) to understand its usage.
 
 #### 📊 Standalone evaluation script
 
-A [standalone evaluation script](evaluate.py) is available for the image to image task. It reads the predictions from a text file ([example](example_msls_prediction.csv)) and prints the metrics. 
+A [standalone evaluation script](evaluate.py) is available for the image to image task. It reads the predictions from a text file ([example](files)) and prints the metrics. 
 
 
 ## 📦 Package structure

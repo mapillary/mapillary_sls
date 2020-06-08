@@ -66,7 +66,7 @@ class MSLS(Dataset):
             seq_length_q, seq_length_db = seq_length, seq_length
         elif task == 'seq2im':
             seq_length_q, seq_length_db = seq_length, 1
-        elif task == 'im2seq':
+        else: #im2seq
             seq_length_q, seq_length_db = 1, seq_length
         
         # load data
@@ -287,7 +287,7 @@ class MSLS(Dataset):
         arr = random.choices(arr, self.weights, k=len(arr))
 
         # calculate the subcache indices
-        self.subcache_indicies = np.array_split(arr, self.nCacheSubset)
+        self.subcache_indices = np.array_split(arr, self.nCacheSubset)
 
         # reset subset counter
         self.current_subset = 0
@@ -333,7 +333,7 @@ class MSLS(Dataset):
             return
 
         # take n query images
-        qidxs = np.asarray(self.subcache_indicies[self.current_subset])
+        qidxs = np.asarray(self.subcache_indices[self.current_subset])
 
         # take their positive in the database
         pidxs = np.unique([i for idx in self.pIdx[qidxs] for i in idx])

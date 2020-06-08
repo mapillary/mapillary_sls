@@ -1,5 +1,4 @@
 import argparse
-from os.path import basename as bn
 import urllib
 import zipfile
 from os.path import basename as bn
@@ -11,7 +10,7 @@ from mapillary_sls.datasets.msls import MSLS
 from mapillary_sls.utils.eval import eval
 
 def create_dummy_predictions(prediction_path, dataset):
-    print("==> Prediction file doesn't exist")
+    print("==> Prediction file {} doesn't exist".format(prediction_path))
     print("==> We create a new dummy prediction file at :")
     print("==> ", prediction_path)
 
@@ -21,18 +20,26 @@ def create_dummy_predictions(prediction_path, dataset):
     # all keys in the database and query keys
     query_keys = np.asarray([','.join([bn(k)[:-4] for k in key.split(',')]) for key in dataset.qImages[dataset.qIdx]]).reshape(numQ,1)
     database_keys = [','.join([bn(k)[:-4] for k in key.split(',')]) for key in dataset.dbImages]
-    
     # choose n = min(5, numDb) random elements from the database
     ranks = np.asarray([np.random.choice(database_keys, replace=False, size = (min(5, numDb))) for q in range(numQ)])
 
+    if ',' in query_keys[0,0]:
+        qtxt = f"sequence with keys {query_keys[0,0]}"
+    else:
+        qtxt = f"image with key {query_keys[0, 0]}"
+    mtxt = ' '.join([str(i) for i in ranks[0][:-1]]) + ' and ' + str(ranks[0][-1]) + '.'
+    if ',' in ranks[0,0]:
+        mtxt = f"{len(ranks[0])} sequences: " + mtxt
+    else:
+        mtxt = f"{len(ranks[0])} images: " + mtxt
+    hdr = ("Each row contains the key of a query image or a comma-separated set of keys for a query sequence,\n"
+           "followed by space-separated predicted image keys or sets of comma-separated keys for predicted sequences\n"
+           "The format is valid for all tasks (im2im, im2seq, seq2im, seq2seq)\n"
+           "For example, in this file, the " + qtxt + " is predicted to match with " + mtxt)
+
     # save the dummy predictions
-    first_row_str = ' '.join([str(i) for i in ranks[0][:-1]]) + ' and ' + str(ranks[0][-1]) + '.'
     np.savetxt(prediction_path, np.concatenate([query_keys, ranks], axis=1), fmt='%s',
-               header="Each row contains the a query key followed by N prediction keys\n"
-                      "The format is valid for all tasks (im2im, im2seq, ...).\n"
-                      
-                      "For example, in this file, the image/sequence with key " + query_keys[0,0] + 
-                      " is predicted to match with " + first_row_str)
+               header=hdr)
 
 def download_msls_sample(path):
     print("Downloading MSLS sample to {}".format(path))
@@ -47,7 +54,7 @@ def main():
     root_default = Path(__file__).parent / 'MSLS_sample'
     parser.add_argument('--prediction',
                         type=Path,
-                        default='example_msls_prediction.csv',
+                        default=Path(__file__).parent / 'files' / 'example_zurich_im2im_prediction.csv',
                         help='Path to the prediction to be evaluated')
     parser.add_argument('--msls-root',
                         type=Path,
@@ -67,10 +74,10 @@ def main():
                         default='im2im',
                         help='Task to evaluate on: '
                              '[im2im, seq2im, im2seq, seq2seq]')
-    parser.add_argument('--seq_length',
+    parser.add_argument('--seq-length',
                         type=int,
-                        default=1,
-                        help='Sequence length to evaluate on')
+                        default=3,
+                        help='Sequence length to evaluate on for seq2X and X2seq tasks')
     parser.add_argument('--subtask',
                         type=str,
                         default='all',
@@ -82,10 +89,14 @@ def main():
         if args.msls_root == root_default:
             download_msls_sample(args.msls_root)
         else:
+            print(args.msls_root, root_default)
             raise FileNotFoundError("Not found: {}".format(args.msls_root))
 
     # select for which ks to evaluate
     ks = [1, 5, 10, 20]
+    if args.task == 'im2im' and args.seq_length > 1:
+        print(f"Ignoring sequence length {args.seq_length} for the im2im task. (Setting to 1)")
+        args.seq_length = 1
 
     dataset = MSLS(args.msls_root, cities = args.cities, mode = 'val', posDistThr = args.threshold, 
                     task = args.task, seq_length = args.seq_length, subtask = args.subtask)
@@ -95,7 +106,8 @@ def main():
     query_keys = [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.qImages[dataset.qIdx]]
     
     # create dummy predictions
-    create_dummy_predictions(args.prediction, dataset)
+    if not args.prediction.exists():
+        create_dummy_predictions(args.prediction, dataset)
     
     # load prediction rankings
     predictions = np.loadtxt(args.prediction, ndmin=2, dtype=str)
