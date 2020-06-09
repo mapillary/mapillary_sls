@@ -14,7 +14,7 @@ def main():
     root_default = Path(__file__).parent / 'MSLS_sample'
     parser.add_argument('--prediction',
                         type=Path,
-                        default=Path(__file__).parent / 'files' / 'example_zurich_im2im_prediction.csv',
+                        default=Path(__file__).parent / 'files' / 'example_msls_im2im_prediction.csv',
                         help='Path to the prediction to be evaluated')
     parser.add_argument('--msls-root',
                         type=Path,
@@ -43,6 +43,10 @@ def main():
                         default='all',
                         help='Subtask to evaluate on: '
                              '[all, s2w, w2s, o2n, n2o, d2n, n2d]')
+    parser.add_argument('--output',
+                        type=Path,
+                        default=None,
+                        help='Path to dump the metrics to')
     args = parser.parse_args()
 
     if not args.msls_root.exists():
@@ -85,12 +89,19 @@ def main():
     # evaluate ranks
     metrics = eval(query_keys, positive_keys, predictions, ks=ks)
 
-    # print metrics
+    f = open(args.output, 'a') if args.output else None
+    # save metrics
     for metric in ['recall', 'map']:
-        for i, k in enumerate(ks): 
-            print('{}@{} = {:.3f}'.format(metric, k, metrics['{}@{}'.format(metric, k)]))
-        print()
-
+        for k in ks:
+            line =  '{}_{}@{},{:.3f}'.format(args.subtask,
+                                             metric,
+                                             k,
+                                             metrics['{}@{}'.format(metric, k)])
+            print(line)
+            if f:
+                f.write(line + '\n')
+    if f:
+        f.close()
 
 if __name__ == "__main__":
     main()
