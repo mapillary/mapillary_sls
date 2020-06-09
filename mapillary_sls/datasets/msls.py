@@ -24,7 +24,8 @@ class MSLS(Dataset):
         # initializing
         assert mode in ('train', 'val', 'test')
         assert task in ('im2im', 'im2seq', 'seq2im', 'seq2seq')
-        assert seq_length % 2 == 1 
+        assert subtask in ('all', 's2w', 'w2s', 'o2n', 'n2o', 'd2n', 'n2d')
+        assert seq_length % 2 == 1
         assert (task == 'im2im' and seq_length == 1) or (task != 'im2im' and seq_length > 1)
 
         if cities in default_cities:

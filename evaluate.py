@@ -28,7 +28,7 @@ def main():
                         type=str,
                         default='zurich',
                         help='Comma-separated list of cities to evaluate on.'
-                             ' Leave blank to use the default validation set (sf + cph)')
+                             ' Leave blank to use the default validation set (sf,cph)')
     parser.add_argument('--task',
                         type=str,
                         default='im2im',
@@ -93,10 +93,10 @@ def main():
     # save metrics
     for metric in ['recall', 'map']:
         for k in ks:
-            line =  '{}_{}@{},{:.3f}'.format(args.subtask,
-                                             metric,
-                                             k,
-                                             metrics['{}@{}'.format(metric, k)])
+            line =  '{}_{}@{}: {:.3f}'.format(args.subtask,
+                                              metric,
+                                              k,
+                                              metrics['{}@{}'.format(metric, k)])
             print(line)
             if f:
                 f.write(line + '\n')
