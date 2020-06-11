@@ -87,10 +87,10 @@ def main():
 
     # Ensure that all predictions are unique
     for k in range(len(query_keys)):
-        assert len(predictions[k, 1:]) == len(np.unique(predictions[k, 1:])), "You have douplicate predictions for image {}".format(query_keys[k])
+        assert len(predictions[k, 1:]) == len(np.unique(predictions[k, 1:])), "You have duplicate predictions for image {}".format(query_keys[k])
 
     # Ensure that all query images are unique
-    assert len(predictions[:,0]) == len(np.unique(predictions[:,0])), "You have douplicate query images"
+    assert len(predictions[:,0]) == len(np.unique(predictions[:,0])), "You have duplicate query images"
 
     # Check if there are predictions that don't correspond to any query images
     for k in predictions[:, 0]:
