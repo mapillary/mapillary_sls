@@ -7,6 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 import math
 import torch
 import random
+import sys
 from mapillary_sls.datasets.generic_dataset import ImagesFromList
 from tqdm import tqdm
 
@@ -113,13 +114,16 @@ class MSLS(Dataset):
 
                     panos_frames = np.where((dbDataRaw['pano'] == False).values)[0]
                     dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, panos_frames)
-                                
-                self.qImages.extend(qSeqKeys)
-                self.dbImages.extend(dbSeqKeys)
-                
+                                                
                 unique_qSeqIdx = np.unique(qSeqIdxs)
                 unique_dbSeqIdx = np.unique(dbSeqIdxs)
-                
+
+                # if a combination of city, task and subtask is chosen, where there are no query/dabase images, then continue to next city
+                if len(unique_qSeqIdx) == 0 or len(unique_dbSeqIdx) == 0: continue
+
+                self.qImages.extend(qSeqKeys)
+                self.dbImages.extend(dbSeqKeys)
+
                 qData = qData.loc[unique_qSeqIdx]
                 dbData = dbData.loc[unique_dbSeqIdx]
 
@@ -193,6 +197,13 @@ class MSLS(Dataset):
                 # add query index
                 self.qIdx.extend(list(range(_lenQ, len(qSeqKeys) + _lenQ))) 
 
+        # if a combination of cities, task and subtask is chosen, where there are no query/database images, then exit
+        if len(self.qImages) == 0 or len(self.dbImages) == 0: 
+            print("Exiting...")
+            print("A combination of cities, task and subtask have been chosen, where there are no query/database images.")
+            print("Try choosing a different subtask or more cities")
+            sys.exit()
+            
         # cast to np.arrays for indexing during training
         self.qIdx = np.asarray(self.qIdx)
         self.qImages = np.asarray(self.qImages)
