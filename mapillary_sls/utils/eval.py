@@ -18,21 +18,21 @@ def rank_embeddings(qvecs, dbvecs):
 
 def eval(query_keys, positive_keys, predictions, ks = [1, 5, 10, 20]):
 	
-	# ensure that the positive and predictions are for the same elements
-	pred_queries = predictions[:,0:1]
-	pred2gt = [np.where(query_keys == pred_key)[0][0] for pred_key in pred_queries]
+    # ensure that the positive and predictions are for the same elements
+    pred_queries = predictions[:,0:1]
+    pred2gt = [np.where(pred_queries == key)[0][0] for key in query_keys]
 
-	# change order to fit with ground truth
-	predictions = predictions[pred2gt,1:]
+    # change order to fit with ground truth
+    predictions = predictions[pred2gt,1:]
 
-	recall_at_k = recall(predictions, positive_keys, ks)
+    recall_at_k = recall(predictions, positive_keys, ks)
 
-	metrics = {}
-	for i, k in enumerate(ks):
-		metrics['recall@{}'.format(k)] = recall_at_k[i]
-		metrics['map@{}'.format(k)] = mapk(predictions, positive_keys, k)
+    metrics = {}
+    for i, k in enumerate(ks):
+        metrics['recall@{}'.format(k)] = recall_at_k[i]
+        metrics['map@{}'.format(k)] = mapk(predictions, positive_keys, k)
 
-	return metrics
+    return metrics
 
 def recall(ranks, pidx, ks):
 	

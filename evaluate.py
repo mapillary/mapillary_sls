@@ -82,20 +82,27 @@ def main():
         assert k in predictions[:, 0], "You didn't provide any predictions for image {}".format(k)
 
     # Ensure that all predictions are in database
-    for k in predictions[:, 1:]:
-        assert np.in1d(k, database_keys).all(), "Some of your predictions are not in the database for the selected task {}".format(k)
+    for i, k in enumerate(predictions[:, 1:]):
+        missing_elem_in_database = np.in1d(k, database_keys, invert = True)
+        if missing_elem_in_database.all():
+            print(i, missing_elem_in_database)
+            print("Some of your predictions are not in the database for the selected task {}".format(k[missing_elem_in_database]))
+            print("This is probably because they are panorama images. They will be ignored in evaluation")
+
+            # move missing elements to the last positions of prediction
+            predictions[i, 1:] = np.concatenate([k[np.invert(missing_elem_in_database)], k[missing_elem_in_database]])
 
     # Ensure that all predictions are unique
     for k in range(len(query_keys)):
-        assert len(predictions[k, 1:]) == len(np.unique(predictions[k, 1:])), "You have duplicate predictions for image {}".format(query_keys[k])
+        assert len(predictions[k, 1:]) == len(np.unique(predictions[k, 1:])), "You have duplicate predictions for image {} at line {}".format(query_keys[k], k)
 
     # Ensure that all query images are unique
     assert len(predictions[:,0]) == len(np.unique(predictions[:,0])), "You have duplicate query images"
 
     # Check if there are predictions that don't correspond to any query images
-    for k in predictions[:, 0]:
+    for i, k in enumerate(predictions[:, 0]):
         if k not in query_keys:
-            print("Ignoring predictions for {}. It is not in the selected cities".format(k))
+            print("Ignoring predictions for {} at line {}. It is not in the selected cities".format(k, i))
     predictions = np.array([l for l in predictions if l[0] in query_keys])
 
     # evaluate ranks
