@@ -85,7 +85,7 @@ def main():
     for i, k in enumerate(predictions[:, 1:]):
         missing_elem_in_database = np.in1d(k, database_keys, invert = True)
         if missing_elem_in_database.all():
-            print(i, missing_elem_in_database)
+
             print("Some of your predictions are not in the database for the selected task {}".format(k[missing_elem_in_database]))
             print("This is probably because they are panorama images. They will be ignored in evaluation")
 
