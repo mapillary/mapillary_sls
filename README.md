@@ -1,5 +1,9 @@
 # Mapillary Street-level Sequences 
 
+## :newspaper: News
+
+- Released patch v1.1 fixing some corrupt images - you will receive a link to download this patch if you already requested the data.
+
 ## Description
 
 Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recognition dataset that contains 1.6M street-level images. 
@@ -22,8 +26,9 @@ A [standalone evaluation script](evaluate.py) is available for the image to imag
 
 ## 📦 Package structure
 
-- `images_vol_X.zip`: images, split into 6 parts for easier download
-- `metadata.zip`: a single zip archive containing the metadata
+- `images_vol_X.zip`: images, split into 6 parts for easier download.
+- `metadata.zip`: a single zip archive containing the metadata.
+- `patch_vX.Y.zip`: unzip any patches on top of the dataset to upgrade.
 
 All the archives can be extracted in the same directory resulting in the following tree:
 
