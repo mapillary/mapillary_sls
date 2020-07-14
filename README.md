@@ -2,7 +2,7 @@
 
 ## :newspaper: News
 
-- Released patch v1.1 fixing some corrupt images - you will receive a link to download this patch if you already requested the data.
+*2020-07-14* - Released patch v1.1 fixing some corrupt images - you will receive a link to download it if you already requested the data.
 
 ## Description
 
