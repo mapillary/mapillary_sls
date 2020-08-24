@@ -60,6 +60,7 @@ class MSLS(Dataset):
 
         # other
         self.transform = transform
+        self.query_keys_with_no_match = []
 
         # define sequence length based on task
         if task == 'im2im':
@@ -171,6 +172,10 @@ class MSLS(Dataset):
                             # gather meta which is useful for positive sampling
                             if sum(night[np.in1d(index, q_frame_idxs)]) > 0: self.night.append(len(self.qIdx)-1)
                             if sum(sideways[np.in1d(index, q_frame_idxs)]) > 0: self.sideways.append(len(self.qIdx)-1)
+
+                    else:
+                        query_key = qSeqKeys[q_seq_idx].split('/')[-1][:-4]
+                        self.query_keys_with_no_match.append(query_key)
 
             # when GPS / UTM / pano info is not available
             elif self.mode in ['test']:

@@ -69,7 +69,8 @@ def main():
     database_keys =  [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.dbImages]
     positive_keys = [[','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.dbImages[pos]] for pos in dataset.pIdx]
     query_keys = [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.qImages[dataset.qIdx]]
-    
+    all_query_keys = [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.qImages]
+
     # create dummy predictions
     if not args.prediction.exists():
         create_dummy_predictions(args.prediction, dataset)
@@ -102,7 +103,15 @@ def main():
     # Check if there are predictions that don't correspond to any query images
     for i, k in enumerate(predictions[:, 0]):
         if k not in query_keys:
-            print("Ignoring predictions for {} at line {}. It is not in the selected cities".format(k, i))
+            if k in dataset.query_keys_with_no_match:
+                pass
+                #print(f"Ignoring predictions for {k}. It has no positive match in the database.")
+            elif k in all_query_keys:
+                # TODO keep track of these and only produce the appropriate error message
+                print(f"Ignoring predictions for {k}. It is not part of the query keys."
+                      f"Only keys in subtask_index.csv are used to evaluate.")
+            else:
+                print(f"Ignoring predictions for {k} at line {i}. It is not in the selected cities or is a panorama")
     predictions = np.array([l for l in predictions if l[0] in query_keys])
 
     # evaluate ranks
