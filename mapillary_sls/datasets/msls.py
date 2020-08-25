@@ -1,3 +1,5 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
@@ -71,7 +73,7 @@ class MSLS(Dataset):
             seq_length_q, seq_length_db = seq_length, 1
         else: #im2seq
             seq_length_q, seq_length_db = 1, seq_length
-        
+
         # load data
         for city in self.cities:
             print("=====> {}".format(city))
@@ -82,7 +84,7 @@ class MSLS(Dataset):
             _lenQ = len(self.qImages)
             _lenDb = len(self.dbImages)
 
-            # when GPS / UTM is available 
+            # when GPS / UTM is available
             if self.mode in ['train','val']:
                 # load query data
                 qData = pd.read_csv(join(root_dir, subdir, city, 'query', 'postprocessed.csv'), index_col = 0)
@@ -95,16 +97,16 @@ class MSLS(Dataset):
                 # arange based on task
                 qSeqKeys, qSeqIdxs = self.arange_as_seq(qData, join(root_dir, subdir, city, 'query'), seq_length_q)
                 dbSeqKeys, dbSeqIdxs = self.arange_as_seq(dbData, join(root_dir, subdir, city, 'database'), seq_length_db)
-                
+
                 # filter based on subtasks
                 if self.mode in ['val']:
                     qIdx = pd.read_csv(join(root_dir, subdir, city, 'query', 'subtask_index.csv'), index_col = 0)
                     dbIdx = pd.read_csv(join(root_dir, subdir, city, 'database', 'subtask_index.csv'), index_col = 0)
-                    
-                    # find all the sequence where the center frame belongs to a subtask                                 
+
+                    # find all the sequence where the center frame belongs to a subtask
                     val_frames = np.where(qIdx[self.subtask])[0]
                     qSeqKeys, qSeqIdxs = self.filter(qSeqKeys, qSeqIdxs, val_frames)
-                    
+
                     val_frames = np.where(dbIdx[self.subtask])[0]
                     dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, val_frames)
 
@@ -115,7 +117,7 @@ class MSLS(Dataset):
 
                     panos_frames = np.where((dbDataRaw['pano'] == False).values)[0]
                     dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, panos_frames)
-                                                
+
                 unique_qSeqIdx = np.unique(qSeqIdxs)
                 unique_dbSeqIdx = np.unique(dbSeqIdxs)
 
@@ -137,27 +139,27 @@ class MSLS(Dataset):
                 # utm coordinates
                 utmQ = qData[['easting', 'northing']].values.reshape(-1,2)
                 utmDb = dbData[['easting', 'northing']].values.reshape(-1,2)
-                
+
                 # find positive images for training
                 neigh = NearestNeighbors(algorithm = 'brute')
                 neigh.fit(utmDb)
                 D, I = neigh.radius_neighbors(utmQ, self.posDistThr)
-                
+
                 if mode == 'train':
                     nD, nI = neigh.radius_neighbors(utmQ, self.negDistThr)
 
                 night, sideways, index = qData['night'].values, (qData['view_direction'] == 'Sideways').values, qData.index
                 for q_seq_idx in range(len(qSeqKeys)):
-                    
+
                     q_frame_idxs = seqIdx2frameIdx(q_seq_idx, qSeqIdxs)
                     q_uniq_frame_idx = frameIdx2uniqFrameIdx(q_frame_idxs, unique_qSeqIdx)
-                    
+
                     p_uniq_frame_idxs = np.unique([p for pos in I[q_uniq_frame_idx] for p in pos])
-                    
+
                     # the query image has at least one positive
                     if len(p_uniq_frame_idxs) > 0:
                         p_seq_idx = np.unique(uniqFrameIdx2seqIdx(unique_dbSeqIdx[p_uniq_frame_idxs], dbSeqIdxs))
-                        
+
                         self.pIdx.append(p_seq_idx + _lenDb)
                         self.qIdx.append(q_seq_idx + _lenQ)
 
@@ -187,28 +189,28 @@ class MSLS(Dataset):
                 # arange in sequences
                 qSeqKeys, qSeqIdxs = self.arange_as_seq(qIdx, join(root_dir, subdir, city, 'query'), seq_length_q)
                 dbSeqKeys, dbSeqIdxs = self.arange_as_seq(dbIdx, join(root_dir, subdir, city, 'database'), seq_length_db)
-                
-                # filter query based on subtask                                
+
+                # filter query based on subtask
                 val_frames = np.where(qIdx[self.subtask])[0]
                 qSeqKeys, qSeqIdxs = self.filter(qSeqKeys, qSeqIdxs, val_frames)
-                
+
                 # filter database based on subtask
                 val_frames = np.where(dbIdx[self.subtask])[0]
                 dbSeqKeys, dbSeqIdxs = self.filter(dbSeqKeys, dbSeqIdxs, val_frames)
-                
+
                 self.qImages.extend(qSeqKeys)
                 self.dbImages.extend(dbSeqKeys)
 
                 # add query index
-                self.qIdx.extend(list(range(_lenQ, len(qSeqKeys) + _lenQ))) 
+                self.qIdx.extend(list(range(_lenQ, len(qSeqKeys) + _lenQ)))
 
         # if a combination of cities, task and subtask is chosen, where there are no query/database images, then exit
-        if len(self.qImages) == 0 or len(self.dbImages) == 0: 
+        if len(self.qImages) == 0 or len(self.dbImages) == 0:
             print("Exiting...")
             print("A combination of cities, task and subtask have been chosen, where there are no query/database images.")
             print("Try choosing a different subtask or more cities")
             sys.exit()
-            
+
         # cast to np.arrays for indexing during training
         self.qIdx = np.asarray(self.qIdx)
         self.qImages = np.asarray(self.qImages)
@@ -261,30 +263,30 @@ class MSLS(Dataset):
     def arange_as_seq(self, data, path, seq_length):
 
         seqInfo = pd.read_csv(join(path, 'seq_info.csv'), index_col = 0)
-        
+
         seq_keys, seq_idxs = [], []
         for idx in data.index:
 
             # edge cases.
             if idx < (seq_length//2) or idx >= (len(seqInfo) - seq_length//2): continue
-            
+
             # find surrounding frames in sequence
             seq_idx = np.arange(-seq_length//2, seq_length//2) + 1 + idx
             seq = seqInfo.iloc[seq_idx]
-            
+
             # the sequence must have the same sequence key and must have consecutive frames
-            if len(np.unique(seq['sequence_key'])) == 1 and (seq['frame_number'].diff()[1:] == 1).all():  
+            if len(np.unique(seq['sequence_key'])) == 1 and (seq['frame_number'].diff()[1:] == 1).all():
                 seq_key = ','.join([join(path, 'images', key + '.jpg') for key in seq['key']])
 
                 seq_keys.append(seq_key)
                 seq_idxs.append(seq_idx)
-        
+
         return seq_keys, np.asarray(seq_idxs)
 
     def filter(self, seqKeys, seqIdxs, center_frame_condition):
         keys, idxs = [], []
         for key, idx in zip(seqKeys, seqIdxs):
-            if idx[len(idx) // 2] in center_frame_condition: 
+            if idx[len(idx) // 2] in center_frame_condition:
                 keys.append(key)
                 idxs.append(idx)
         return keys, np.asarray(idxs)
@@ -314,16 +316,16 @@ class MSLS(Dataset):
         # reset triplets
         self.triplets = []
 
-        # if there is no network associate to the cache, then we don't do any hard negative mining. 
+        # if there is no network associate to the cache, then we don't do any hard negative mining.
         # Instead we just create som naive triplets based on distance.
         if net is None:
             qidxs = np.random.choice(len(self.qIdx), self.cached_queries, replace = False)
 
             for q in qidxs:
-                
+
                 # get query idx
                 qidx = self.qIdx[q]
-                
+
                 # get positives
                 pidxs = self.pIdx[q]
 
@@ -333,11 +335,11 @@ class MSLS(Dataset):
                 # get negatives
                 while True:
                     nidxs = np.random.choice(len(self.dbImages), size = self.nNeg)
-                    
+
                     # ensure that non of the choice negative images are within the negative range (default 25 m)
                     if sum(np.in1d(nidxs, self.nonNegIdx[q])) == 0:
                         break
-                
+
                 # package the triplet and target
                 triplet = [qidx, pidx, *nidxs]
                 target = [-1, 1] + [0]*len(nidxs)
@@ -346,7 +348,7 @@ class MSLS(Dataset):
 
             # increment subset counter
             self.current_subset += 1
-            
+
             return
 
         # take n query images
@@ -393,15 +395,15 @@ class MSLS(Dataset):
         # compute dot product scores and ranks on GPU
         pScores = torch.mm(qvecs, pvecs.t())
         pScores, pRanks = torch.sort(pScores, dim=1, descending=True)
-        
+
         # calculate distance between query and negatives
         nScores = torch.mm(qvecs, nvecs.t())
         nScores, nRanks = torch.sort(nScores, dim=1, descending=True)
-        
+
         # convert to cpu and numpy
         pScores, pRanks = pScores.cpu().numpy(), pRanks.cpu().numpy()
         nScores, nRanks = nScores.cpu().numpy(), nRanks.cpu().numpy()
-        
+
         # selection of hard triplets
         for q in range(len(qidxs)):
 
@@ -415,7 +417,7 @@ class MSLS(Dataset):
 
             # take the closest positve
             dPos = pScores[q, pidx][0][0]
-            
+
             # get distances to all negatives
             dNeg = nScores[q, :]
 
@@ -425,10 +427,10 @@ class MSLS(Dataset):
 
             # if less than nNeg are violating then skip this query
             if np.sum(violatingNeg) <= self.nNeg: continue
-            
+
             # select hardest negatives
             hardest_negIdx = np.argsort(loss)[:self.nNeg]
-            
+
             # select the hardest negatives
             cached_hardestNeg = nRanks[q, hardest_negIdx]
 
@@ -439,21 +441,21 @@ class MSLS(Dataset):
             qidx = self.qIdx[qidx]
             pidx = pidxs[cached_pidx]
             hardestNeg = nidxs[cached_hardestNeg]
-            
+
             # package the triplet and target
             triplet = [qidx, pidx, *hardestNeg]
             target = [-1, 1] + [0]*len(hardestNeg)
 
             self.triplets.append((triplet, target))
-        
+
         # increment subset counter
         self.current_subset += 1
-        
+
     def __getitem__(self, idx):
-        
+
         # get triplet
         triplet, target = self.triplets[idx]
-        
+
         # get query, positive and negative idx
         qidx = triplet[0]
         pidx = triplet[1]
@@ -463,5 +465,5 @@ class MSLS(Dataset):
         output = [torch.stack([self.transform(Image.open(im)) for im in self.qImages[qidx].split(',')])]
         output.append(torch.stack([self.transform(Image.open(im)) for im in self.dbImages[pidx].split(',')]))
         output.extend([torch.stack([self.transform(Image.open(im)) for im in self.dbImages[idx].split(',')]) for idx in nidx])
-        
+
         return torch.cat(output), torch.tensor(target)

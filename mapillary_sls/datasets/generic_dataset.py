@@ -1,3 +1,5 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
@@ -26,5 +28,3 @@ class ImagesFromList(Dataset):
 			img = img[0]
 
 		return img, idx
-
-

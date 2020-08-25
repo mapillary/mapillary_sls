@@ -1,3 +1,5 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+
 import argparse
 from os.path import basename as bn
 from pathlib import Path
@@ -62,10 +64,10 @@ def main():
         print(f"Ignoring sequence length {args.seq_length} for the im2im task. (Setting to 1)")
         args.seq_length = 1
 
-    dataset = MSLS(args.msls_root, cities = args.cities, mode = 'val', posDistThr = args.threshold, 
+    dataset = MSLS(args.msls_root, cities = args.cities, mode = 'val', posDistThr = args.threshold,
                     task = args.task, seq_length = args.seq_length, subtask = args.subtask)
 
-    # get query and positive image keys  
+    # get query and positive image keys
     database_keys =  [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.dbImages]
     positive_keys = [[','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.dbImages[pos]] for pos in dataset.pIdx]
     query_keys = [','.join([bn(i)[:-4] for i in p.split(',')]) for p in dataset.qImages[dataset.qIdx]]
@@ -74,7 +76,7 @@ def main():
     # create dummy predictions
     if not args.prediction.exists():
         create_dummy_predictions(args.prediction, dataset)
-    
+
     # load prediction rankings
     predictions = np.loadtxt(args.prediction, ndmin=2, dtype=str)
 

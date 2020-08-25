@@ -1,3 +1,5 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+
 import urllib
 import zipfile
 from os.path import basename as bn
@@ -17,7 +19,7 @@ def rank_embeddings(qvecs, dbvecs):
 	return ranks
 
 def eval(query_keys, positive_keys, predictions, ks = [1, 5, 10, 20]):
-	
+
     # ensure that the positive and predictions are for the same elements
     pred_queries = predictions[:,0:1]
     pred2gt = [np.where(pred_queries == key)[0][0] for key in query_keys]
@@ -35,7 +37,7 @@ def eval(query_keys, positive_keys, predictions, ks = [1, 5, 10, 20]):
     return metrics
 
 def recall(ranks, pidx, ks):
-	
+
 	recall_at_k = np.zeros(len(ks))
 	for qidx in range(ranks.shape[0]):
 
@@ -51,7 +53,7 @@ def recall(ranks, pidx, ks):
 def apk(pidx, rank, k):
     if len(rank)>k:
         rank = rank[:k]
-    
+
     score = 0.0
     num_hits = 0.0
 
@@ -86,7 +88,7 @@ if __name__ == "__main__":
 
 	# print metrics
 	for metric in ['recall', 'map']:
-		for i, k in enumerate(ks): 
+		for i, k in enumerate(ks):
 			print('{}@{} = {:.3f}'.format(metric, k, metrics['{}@{}'.format(metric, k)]))
 		print()
 

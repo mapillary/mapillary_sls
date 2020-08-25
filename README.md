@@ -1,4 +1,4 @@
-# Mapillary Street-level Sequences 
+# Mapillary Street-level Sequences
 
 ## :newspaper: News
 
@@ -6,10 +6,12 @@
 
 ## Description
 
-Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recognition dataset that contains 1.6M street-level images. 
+Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recognition dataset that contains 1.6M street-level images.
 
 - ⬇️ Download: https://www.mapillary.com/dataset/places
 - 📄 Paper: https://research.mapillary.com/publication/cvpr20c
+- ️🧑‍⚖️ [Code of Conduct](CODE_OF_CONDUCT.md)
+- 🗳️ [Contributing / Pull Requests](CONTRIBUTING.md)
 
 
 ## 🔥 Using MSLS
@@ -21,7 +23,7 @@ Check out the [demo](demo.ipynb) to understand its usage.
 
 #### 📊 Standalone evaluation script
 
-A [standalone evaluation script](evaluate.py) is available for all tasks. It reads the predictions from a text file ([example](files)) and prints the metrics. 
+A [standalone evaluation script](evaluate.py) is available for all tasks. It reads the predictions from a text file ([example](files)) and prints the metrics.
 
 
 ## 📦 Package structure
@@ -72,3 +74,6 @@ The meta files include the following information:
 
 - **subtask_index.csv**: Precomputed image indices for each subtask in order to evaluate models on (all, summer2winter, winter2summer, day2night, night2day, old2new, new2old)
 
+## License
+
+This repository is MIT licensed.

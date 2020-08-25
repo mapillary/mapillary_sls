@@ -1,3 +1,5 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+
 from torchvision import transforms
 import torch
 

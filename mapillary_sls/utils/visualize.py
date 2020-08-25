@@ -1,3 +1,5 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -13,7 +15,7 @@ def visualize_triplets(batch, task):
 	sequences, labels = batch
 
 	N = labels.shape[1]
-	
+
 	if task == 'im2im':
 		q_seq_length, db_seq_length = 1,1
 	elif task == 'seq2seq':
@@ -29,12 +31,12 @@ def visualize_triplets(batch, task):
 
 	chuncks = list(np.concatenate([[q_seq_length], [db_seq_length]*(N - 1)]))
 
-	for batch_idx in range(min(5, len(sequences))): 
+	for batch_idx in range(min(5, len(sequences))):
 		seq_batch_split = torch.split(sequences[batch_idx], chuncks)
 		for seq, label in zip(seq_batch_split, labels[batch_idx]):
 
 			seq = [denormalize(im) for im in seq]
-			
+
 			if label == -1:
 				neg_count = 0
 
