@@ -8,7 +8,7 @@
 
 Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recognition dataset that contains 1.6M street-level images.
 
-- ⬇️ Download: https://www.mapillary.com/dataset/places
+- ⬇️ Download: https://www.mapillary.com/dataset/places (sample [here](https://static.mapillary.com/MSLS_samples.zip))
 - 📄 Paper: https://research.mapillary.com/publication/cvpr20c
 - ️🧑‍⚖️ [Code of Conduct](CODE_OF_CONDUCT.md)
 - 🗳️ [Contributing / Pull Requests](CONTRIBUTING.md)
