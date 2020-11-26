@@ -25,7 +25,7 @@ Check out the [demo](demo.ipynb) to understand its usage.
 
 A [standalone evaluation script](evaluate.py) is available for all tasks. It reads the predictions from a text file ([example](files)) and prints the metrics.
 
-Here we show results of a models consisting of a Resnet50 backbone followed by Generalized Mean Layer. The models are trained with eithher the standard triplet loss or the Bayesian triplet loss. All models are trained withh standard hard negative mining on image resolution 224x224.
+Here we show results of models consisting of a Resnet50 backbone followed by Generalized Mean Layer. The models are trained with either the standard triplet loss or the uncertainty-aware Bayesian triplet loss. All models are trained with standard hard negative mining on image resolution 224x224.
 
 Results on test set (Miami, Athens, Buenos Aires, Stockholm, Bengaluru, Kampala):
 
@@ -33,7 +33,6 @@ Results on test set (Miami, Athens, Buenos Aires, Stockholm, Bengaluru, Kampala)
 |-|-|-|-|-|-|-|-|-|-|-|-|
 |  224x224 | Resnet50  |   GeM  |   Triplet Loss  | 0.372  |   0.522  |   0.582  |   0.636  |   0.372  |   0.261  |   0.234  |   0.228 |
 |  224x224 | Resnet50  |   GeM  |   Bayesian Triplet Loss  | 0.366	| 0.513	| 0.574	| 0.629 |	0.366|	0.253|	0.229|	0.222 |
-
 
 Results on validation set (San Fransico, Copenhagen)
 
