@@ -92,3 +92,7 @@ The meta files include the following information:
 ## License
 
 This repository is MIT licensed.
+
+[Terms of Use](https://opensource.facebook.com/legal/terms)
+
+[Privacy Policy](https://opensource.facebook.com/legal/privacy)
