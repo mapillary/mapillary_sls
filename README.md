@@ -29,6 +29,7 @@ Here we show results of models consisting of a Resnet50 backbone followed by Gen
 
 Results on test set (Miami, Athens, Buenos Aires, Stockholm, Bengaluru, Kampala):
 
+<<<<<<< HEAD
 |   Im size | Arch   |   Pool  |   Loss   |   R@1  |   R@5  |   R@10  |   R@20  |   M@1  |   M@5  |   M@10  |   M@20  |
 |-|-|-|-|-|-|-|-|-|-|-|-|
 |  224x224 | Resnet50  |   GeM  |   Triplet Loss  | 0.372  |   0.522  |   0.582  |   0.636  |   0.372  |   0.261  |   0.234  |   0.228 |
@@ -40,6 +41,19 @@ Results on validation set (San Fransico, Copenhagen)
 |-|-|-|-|-|-|-|-|-|-|-|-|
 |  224x224 |   Resnet50  |   GeM  |   Triplet Loss  | 0.623  |   0.780  |   0.830  |   0.859  |   0.623  |   0.432  |   0.380  |   0.372 |
 |  224x224 | Resnet50  |   GeM  |   Bayesian Triplet Loss  | 0.618	| 0.746	| 0.805	| 0.839 |	0.618|	0.419|	0.369|	0.360 |
+=======
+|   Loss   |   R@1  |   R@5  |   R@10  |   R@20  |   M@1  |   M@5  |   M@10  |   M@20  |
+|-|-|-|-|-|-|-|-|-|
+|   Triplet Loss  | 0.372  |   0.522  |   0.582  |   0.636  |   0.372  |   0.261  |   0.234  |   0.228 |
+|   Bayesian Triplet Loss  | 0.366	| 0.513	| 0.574	| 0.629 |	0.366|	0.253|	0.229|	0.222 |
+
+Results on validation set (San Francisco, Copenhagen)
+
+|   Loss   |   R@1  |   R@5  |   R@10  |   R@20  |   M@1  |   M@5  |   M@10  |   M@20  |
+|-|-|-|-|-|-|-|-|-|
+|   Triplet Loss  | 0.623  |   0.780  |   0.830  |   0.859  |   0.623  |   0.432  |   0.380  |   0.372 |
+|   Bayesian Triplet Loss  | 0.618	| 0.746	| 0.805	| 0.839 |	0.618|	0.419|	0.369|	0.360 |
+>>>>>>> fb58cdbbeb58ad8ff52be352c4250bd89c021352
 
 ## 📦 Package structure
 
@@ -92,3 +106,7 @@ The meta files include the following information:
 ## License
 
 This repository is MIT licensed.
+
+[Terms of Use](https://opensource.facebook.com/legal/terms)
+
+[Privacy Policy](https://opensource.facebook.com/legal/privacy)
