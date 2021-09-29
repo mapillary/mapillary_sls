@@ -4,17 +4,14 @@ import urllib
 import zipfile
 from os.path import basename as bn
 
-import torch
 import numpy as np
 
 
 def rank_embeddings(qvecs, dbvecs):
 
 	# search and rank
-	scores = torch.mm(qvecs, dbvecs.T)
-	ranks = torch.argsort(-scores, axis=1)
-
-	ranks = ranks.cpu().numpy()
+	scores = np.matmul(qvecs, dbvecs.T)
+	ranks = np.argsort(-scores, axis=1)
 
 	return ranks
 
