@@ -2,7 +2,8 @@
 
 ## :newspaper: News
 
-*2020-07-14* - Released patch v1.1 fixing some corrupt images - you will receive a link to download it if you already requested the data.
+- *2020-12-30* - Added information about evaluation server
+- *2020-07-14* - Released patch v1.1 fixing some corrupt images
 
 ## Description
 
@@ -23,7 +24,7 @@ Check out the [demo](demo.ipynb) to understand its usage.
 
 #### 📊 Standalone evaluation script
 
-A [standalone evaluation script](evaluate.py) is available for all tasks. It reads the predictions from a text file ([example](files)) and prints the metrics.
+A [standalone evaluation script](evaluate.py) is available for all tasks. It reads the predictions from a text file ([example](files/example_msls_im2im_prediction.csv)) and prints the metrics.
 
 Here we show results of models consisting of a Resnet50 backbone followed by Generalized Mean Layer. The models are trained with either the standard triplet loss or the uncertainty-aware Bayesian triplet loss. All models are trained with standard hard negative mining on image resolution 224x224.
 
@@ -40,6 +41,19 @@ Results on validation set (San Francisco, Copenhagen)
 |-|-|-|-|-|-|-|-|-|
 |   Triplet Loss  | 0.623  |   0.780  |   0.830  |   0.859  |   0.623  |   0.432  |   0.380  |   0.372 |
 |   Bayesian Triplet Loss  | 0.618	| 0.746	| 0.805	| 0.839 |	0.618|	0.419|	0.369|	0.360 |
+
+#### 📊 Evaluate on the test set
+
+For evaluating on the test set, we've hosted a Codalab competition [here](https://codalab.lisn.upsaclay.fr/competitions/865)
+
+Make sure to submit a single .zip file containing a single .csv file following the format described above for the standalone evaluation script. The ([example](files/example_msls_im2im_prediction.csv)) in this repository is for the validation set, you must make sure to submit predictions for the test set or your submission will fail.
+
+If your submission fails, read the log to find out why. Known reasons:
+
+- Worker out of space ("no space left on device" error): Please complain here and try again later.
+- You didn't provide any predictions for image "X": Make sure your are submitting predictions for the test set.
+
+If you get a different error, please file a Github Issue
 
 ## 📦 Package structure
 
