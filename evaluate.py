@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from mapillary_sls.datasets.msls import MSLS
-from mapillary_sls.utils.eval import eval, create_dummy_predictions, download_msls_sample
+from mapillary_sls.utils.eval import eval, create_dummy_predictions
 
 
 def main():
@@ -52,11 +52,7 @@ def main():
     args = parser.parse_args()
 
     if not args.msls_root.exists():
-        if args.msls_root == root_default:
-            download_msls_sample(args.msls_root)
-        else:
-            print(args.msls_root, root_default)
-            raise FileNotFoundError("Not found: {}".format(args.msls_root))
+        raise FileNotFoundError("Not found: {}".format(args.msls_root))
 
     # select for which ks to evaluate
     ks = [1, 5, 10, 20]

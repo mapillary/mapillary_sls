@@ -121,11 +121,3 @@ def create_dummy_predictions(prediction_path, dataset):
     # save the dummy predictions
     np.savetxt(prediction_path, np.concatenate([query_keys, ranks], axis=1), fmt='%s',
                header=hdr)
-
-
-def download_msls_sample(path):
-    print("Downloading MSLS sample to {}".format(path))
-    path.mkdir(parents=True)
-    path_dl, _ = urllib.request.urlretrieve("https://static.mapillary.com/MSLS_samples.zip")
-    with zipfile.ZipFile(path_dl, 'r') as zf:
-        zf.extractall(path)

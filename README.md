@@ -2,6 +2,7 @@
 
 ## :newspaper: News
 
+- *2026-04-13* - Sample and test set now available at main download site
 - *2020-12-30* - Added information about evaluation server
 - *2020-07-14* - Released patch v1.1 fixing some corrupt images
 
@@ -9,7 +10,7 @@
 
 Mapillary Street-level Sequences (MSLS) is a large-scale long-term place recognition dataset that contains 1.6M street-level images.
 
-- ⬇️ Download: https://www.mapillary.com/dataset/places (sample [here](https://static.mapillary.com/MSLS_samples.zip))
+- ⬇️ Download: https://www.mapillary.com/dataset/places
 - 📄 Paper: https://research.mapillary.com/publication/cvpr20c
 - ️🧑‍⚖️ [Code of Conduct](CODE_OF_CONDUCT.md)
 - 🗳️ [Contributing / Pull Requests](CONTRIBUTING.md)
@@ -44,16 +45,10 @@ Results on validation set (San Francisco, Copenhagen)
 
 #### 📊 Evaluate on the test set
 
-For evaluating on the test set, we've hosted a Codalab competition [here](https://codalab.lisn.upsaclay.fr/competitions/865)
+Codalab has been [phased out](https://codalab.lisn.upsaclay.fr/).
+For evaluating on the test set, use the script above.
+The test set GT is now available alongside the rest of the data in the download page. 
 
-Make sure to submit a single .zip file containing a single .csv file following the format described above for the standalone evaluation script. The ([example](files/example_msls_im2im_prediction.csv)) in this repository is for the validation set, you must make sure to submit predictions for the test set or your submission will fail.
-
-If your submission fails, read the log to find out why. Known reasons:
-
-- Worker out of space ("no space left on device" error): Please complain here and try again later.
-- You didn't provide any predictions for image "X": Make sure your are submitting predictions for the test set.
-
-If you get a different error, please file a Github Issue
 
 ## 📦 Package structure
 
